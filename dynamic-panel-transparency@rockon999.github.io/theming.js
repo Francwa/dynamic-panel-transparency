@@ -2,7 +2,7 @@ import St from 'gi://St';
 import GLib from 'gi://GLib';
 
 import * as Util from './util.js';
-import { extensionUtils, main } from './shell.js';
+import { Extension, main } from './shell.js';
 
 /* Scale factor for color conversion. */
 const SCALE_FACTOR = 255.9999999;
@@ -380,7 +380,7 @@ export class Theming {
      * @returns {string} Filename of the stylesheet.
      */
     apply_stylesheet_css(css, name) {
-        const Me = extensionUtils.getCurrentExtension();
+        const Me = Extension.lookupByUUID('dynamic-panel-transparency@rockon999.github.io');
 
         let file_name = GLib.build_filenamev([
             GLib.get_user_data_dir(),
@@ -556,5 +556,12 @@ export class Theming {
         this.register_style('dpt-panel-transition-duration');
 
         return stylesheet;
+    }
+
+    remove_opacity() {
+        this.panel.remove_style_class_name('dpt-panel-maximized');
+        this.panel.remove_style_class_name('dpt-panel-unmaximized');
+        this.panel.remove_style_class_name('dpt-panel-custom-maximized');
+        this.panel.remove_style_class_name('dpt-panel-custom-unmaximized');
     }
 }

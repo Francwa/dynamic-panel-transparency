@@ -1,563 +1,386 @@
-// @ts-nocheck
+import Adw from 'gi://Adw';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import Gdk from 'gi://Gdk';
+import Gio from 'gi://Gio';
+import Gtk from 'gi://Gtk';
 
-/* exported init, buildPrefsWidget */
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
-const Gdk = imports.gi.Gdk;
-const Gio = imports.gi.Gio;
-const Gtk = imports.gi.Gtk;
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+class Color {
+    static getRGBAFromSettings(settings, key) {
+        let rgb_value = settings.get_value(key).deep_unpack();
+        let rgba = new Gdk.RGBA();
+        rgba.red = rgb_value[0] / 255;
+        rgba.green = rgb_value[1] / 255;
+        rgba.blue = rgb_value[2] / 255;
+        rgba.alpha = 1;
 
-const Gettext = imports.gettext.domain('dynamic-panel-transparency');
-const _ = Gettext.gettext;
-
-const gtk30_ = imports.gettext.domain('gtk30').gettext;
-
-/**
- * Evaluates parameter 'value' and returns either 'value' or 'min'/'max' if 'value' is outside of the range.
- *
- * @param {Number} value - Test value.
- * @param {Number} min - Minimum value.
- * @param {Number} max - Maximum value.
- *
- * @returns {Number} 'value' or the minimum or maximum.
- *
- */
-function clamp(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-}
-
-/**
- * Converts a GdkColor into a JS/CSS color object.
- *
- * @param {Object} color - GdkColor to convert.
- *
- * @returns {Object} Converted RGB color.
- *
- */
-function gdk_to_css_color(color) {
-    let red = Math.round(clamp(color.red * 255, 0, 255));
-    let green = Math.round(clamp(color.green * 255, 0, 255));
-    let blue = Math.round(clamp(color.blue * 255, 0, 255));
-
-    return { red: red, green: green, blue: blue };
-}
-
-/* Settings Keys */
-const SETTINGS_ENABLE_BACKGROUND_COLOR = 'enable-background-color';
-const SETTINGS_ENABLE_MAXIMIZED_TEXT_COLOR = 'enable-maximized-text-color';
-const SETTINGS_ENABLE_OPACITY = 'enable-opacity';
-const SETTINGS_ENABLE_OVERVIEW_TEXT_COLOR = 'enable-overview-text-color';
-const SETTINGS_ENABLE_TEXT_COLOR = 'enable-text-color';
-const SETTINGS_ICON_SHADOW = 'icon-shadow';
-const SETTINGS_ICON_SHADOW_COLOR = 'icon-shadow-color';
-const SETTINGS_ICON_SHADOW_POSITION = 'icon-shadow-position';
-const SETTINGS_MAXIMIZED_OPACITY = 'maximized-opacity';
-const SETTINGS_MAXIMIZED_TEXT_COLOR = 'maximized-text-color';
-const SETTINGS_PANEL_COLOR = 'panel-color';
-const SETTINGS_REMOVE_PANEL_STYLING = 'remove-panel-styling';
-const SETTINGS_TEXT_COLOR = 'text-color';
-const SETTINGS_TEXT_SHADOW = 'text-shadow';
-const SETTINGS_TEXT_SHADOW_COLOR = 'text-shadow-color';
-const SETTINGS_TEXT_SHADOW_POSITION = 'text-shadow-position';
-const SETTINGS_TRANSITION_SPEED = 'transition-speed';
-const SETTINGS_TRANSITION_WITH_OVERVIEW = 'transition-with-overview';
-const SETTINGS_TRANSITION_WINDOWS_TOUCH = 'transition-windows-touch';
-const SETTINGS_UNMAXIMIZED_OPACITY = 'unmaximized-opacity';
-
-const Page = { TRANSITIONS: 0, FOREGROUND: 1, BACKGROUND: 2, ABOUT: 3 };
-Object.freeze(Page);
-
-/* Color Array Indices */
-const RED = 0;
-const GREEN = 1;
-const BLUE = 2;
-const ALPHA = 3;
-
-/* Shadow Positioning Indices */
-const HORIZONTAL_OFFSET = 0;
-const VERTICAL_OFFSET = 1;
-const BLUR_RADIUS = 2;
-
-/* UI spacing & similar values. */
-const WEBSITE_LABEL_BOTTOM_MARGIN = 50;
-const WEBSITE_LABEL_TOP_MARGIN = 20;
-
-/* Color Scaling Factor (Byte to Decimal) */
-const SCALE_FACTOR = 255.9999999;
-
-function init() {
-    ExtensionUtils.initTranslations();
-}
-
-/* UI Setup */
-function buildPrefsWidget() {
-    /* Stores settings until the user applies them. */
-
-    /* Get Settings */
-    let settings = ExtensionUtils.getSettings();
-    /* Create a UI Builder */
-    let builder = new Gtk.Builder();
-    /* Setup Translation */
-    builder.set_translation_domain(Me.metadata['gettext-domain']);
-    /* Get UI File */
-    builder.add_from_file(Me.path + '/prefs.ui');
-
-    /* Main Widget (Grid) */
-    let main_widget = builder.get_object('main_box');
-
-    {
-        /* Transition speed control */
-        let speed_scale = builder.get_object('speed_scale');
-        /* Init value. */
-        speed_scale.adjustment.set_value(settings.get_int(SETTINGS_TRANSITION_SPEED));
-        /* Add default marking. */
-        speed_scale.add_mark(
-            settings.get_default_value(SETTINGS_TRANSITION_SPEED).unpack(),
-            Gtk.PositionType.BOTTOM,
-            _('default')
-        );
-        /* Add formatting */
-        speed_scale.set_format_value_func((scale, value) => {
-            return value + 'ms';
-        });
-        speed_scale.connect(
-            'value-changed',
-            function (widget) {
-                settings.set_value(
-                    SETTINGS_TRANSITION_SPEED,
-                    new GLib.Variant('i', widget.adjustment.get_value())
-                );
-            }.bind(this)
-        );
-
-        let transition_windows_touch = builder.get_object('transition_windows_touch_check');
-        transition_windows_touch.set_active(
-            settings.get_boolean(SETTINGS_TRANSITION_WINDOWS_TOUCH)
-        );
-
-        transition_windows_touch.connect(
-            'toggled',
-            function (widget) {
-                settings.set_value(
-                    SETTINGS_TRANSITION_WINDOWS_TOUCH,
-                    new GLib.Variant('b', widget.get_active())
-                );
-            }.bind(this)
-        );
-
-        let transition_with_overview = builder.get_object('transition_with_overview_check');
-        transition_with_overview.set_active(
-            settings.get_boolean(SETTINGS_TRANSITION_WITH_OVERVIEW)
-        );
-
-        transition_with_overview.connect(
-            'toggled',
-            function (widget) {
-                settings.set_value(
-                    SETTINGS_TRANSITION_WITH_OVERVIEW,
-                    new GLib.Variant('b', widget.get_active())
-                );
-            }.bind(this)
-        );
+        return rgba;
     }
 
-    /* Setup foreground tab */
-    {
-        let text_color_switch = builder.get_object('text_color_switch');
-        let text_color_revealer = builder.get_object('text_color_revealer');
+    static saveRGBtoSettings(settings, key, rgba) {
+        /* We have rgba in input but ignore the alpha value */
+        let new_rgb_value = [
+            Math.round(rgba.red * 255),
+            Math.round(rgba.green * 255),
+            Math.round(rgba.blue * 255)
+        ];
+        settings.set_value(key, new GLib.Variant('(iii)', new_rgb_value));
+    }
 
-        text_color_switch.set_active(settings.get_boolean(SETTINGS_ENABLE_TEXT_COLOR));
-        text_color_switch.connect(
-            'state-set',
-            function (widget, state) {
-                settings.set_value(SETTINGS_ENABLE_TEXT_COLOR, new GLib.Variant('b', state));
-                text_color_revealer.set_reveal_child(state);
-            }.bind(this)
-        );
+    static saveRGBAtoSettings(settings, key, rgba, variant) {
+        let new_rgb_value = [
+            Math.round(rgba.red * 255),
+            Math.round(rgba.green * 255),
+            Math.round(rgba.blue * 255),
+            rgba.alpha
+        ];
+        settings.set_value(key, new GLib.Variant(variant, new_rgb_value));
+    }
+}
 
-        let maximized_text_color_switch = builder.get_object('maximized_text_color_check');
-        maximized_text_color_switch.set_active(
-            settings.get_boolean(SETTINGS_ENABLE_MAXIMIZED_TEXT_COLOR)
-        );
+class Position {
+    static getFromSettings(settings, key) {
+        let position = settings.get_value(key).deep_unpack();
+        let x_offset = position[0];
+        let y_offset = position[1];
+        let radius = position[2];
+        return [x_offset, y_offset, radius];
+    }
 
-        maximized_text_color_switch.connect(
-            'toggled',
-            function (widget) {
-                settings.set_value(
-                    SETTINGS_ENABLE_MAXIMIZED_TEXT_COLOR,
-                    new GLib.Variant('b', widget.get_active())
-                );
-            }.bind(this)
-        );
+    static saveToSettings(settings, key, position) {
+        settings.set_value(key, new GLib.Variant('(iii)', position));
+    }
 
-        let overview_text_color_switch = builder.get_object('overview_text_color_check');
-        overview_text_color_switch.set_active(
-            settings.get_boolean(SETTINGS_ENABLE_OVERVIEW_TEXT_COLOR)
-        );
+}
 
-        overview_text_color_switch.connect(
-            'toggled',
-            function (widget) {
-                settings.set_value(
-                    SETTINGS_ENABLE_OVERVIEW_TEXT_COLOR,
-                    new GLib.Variant('b', widget.get_active())
-                );
-            }.bind(this)
-        );
+export default class MyExtensionPreferences extends ExtensionPreferences {
+    fillPreferencesWindow(window) {
+        let settings = this.getSettings();
 
-        let remove_panel_styling_check = builder.get_object('remove_panel_styling_check');
-        remove_panel_styling_check.set_active(settings.get_boolean(SETTINGS_REMOVE_PANEL_STYLING));
+        let UIFolderPath = this.dir.get_path();
 
-        remove_panel_styling_check.connect(
-            'toggled',
-            function (widget) {
-                settings.set_value(
-                    SETTINGS_REMOVE_PANEL_STYLING,
-                    new GLib.Variant('b', widget.get_active())
-                );
-            }.bind(this)
-        );
+        let builder = new Gtk.Builder();
+        builder.add_from_file(UIFolderPath + '/prefs.ui');
 
-        let maximized_text_color_btn = builder.get_object('maximized_text_color_btn');
-        let maximized_text_color = settings.get_value(SETTINGS_MAXIMIZED_TEXT_COLOR).deep_unpack();
+        /* First tab: Transition */
+        let page = builder.get_object('transition');
 
-        let css_color =
-            'rgba(' +
-            maximized_text_color[RED] +
-            ',' +
-            maximized_text_color[GREEN] +
-            ',' +
-            maximized_text_color[BLUE] +
-            ', 1.0)';
-        let scaled_color = new Gdk.RGBA();
+        let transition_speed_scale = builder.get_object('transition_speed_scale');
+        transition_speed_scale.set_value(settings.get_int('transition-speed'));
+        transition_speed_scale.add_mark(1000, Gtk.PositionType.BOTTOM, null);
 
-        if (scaled_color.parse(css_color)) {
-            maximized_text_color_btn.set_rgba(scaled_color);
-        }
+        let transition_speed_timeout_id = null;
+        transition_speed_scale.connect('change-value', (scale) => {
+            if (transition_speed_timeout_id) {
+                GLib.source_remove(transition_speed_timeout_id);
+            }
 
-        maximized_text_color_btn.connect(
-            'color-set',
-            function (color_btn) {
-                let color = gdk_to_css_color(color_btn.get_rgba());
-                let rgb = [color.red, color.green, color.blue];
+            transition_speed_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                settings.set_value('transition-speed', new GLib.Variant('i', scale.get_value()));
+                transition_speed_timeout_id = null;
+                return false;
+            });
+        });
 
-                settings.set_value(SETTINGS_MAXIMIZED_TEXT_COLOR, new GLib.Variant('(iii)', rgb));
-            }.bind(this)
-        );
+        let transition_windows_touch_check = builder.get_object('transition_windows_touch_check');
+        transition_windows_touch_check.set_active(settings.get_boolean('transition-windows-touch'));
+        transition_windows_touch_check.connect('state-set', (check) => {
+            settings.set_value('transition-windows-touch', new GLib.Variant('b', check.get_active()));
+        });
 
-        let text_color_btn = builder.get_object('text_color_btn');
-        let text_color = settings.get_value(SETTINGS_TEXT_COLOR).deep_unpack();
+        let transition_with_overview_check = builder.get_object('transition_with_overview_check');
+        transition_with_overview_check.set_active(settings.get_boolean('transition-with-overview'));
+        transition_with_overview_check.connect('state-set', (check) => {
+            settings.set_value('transition-with-overview', new GLib.Variant('b', check.get_active()));
+        });
 
-        css_color =
-            'rgba(' + text_color[RED] + ',' + text_color[GREEN] + ',' + text_color[BLUE] + ', 1.0)';
-        scaled_color = new Gdk.RGBA();
+        /* Second tab: Foreground */
+        let page2 = builder.get_object('foreground');
 
-        if (scaled_color.parse(css_color)) {
-            text_color_btn.set_rgba(scaled_color);
-        }
+        let text_coloration_enable_check = builder.get_object('text_coloration_enable_check');
+        text_coloration_enable_check.set_active(settings.get_boolean('enable-text-color'));
+        text_coloration_enable_check.connect('state-set', (check) => {
+            settings.set_value('enable-text-color', new GLib.Variant('b', check.get_active()));
+        });
 
-        text_color_btn.connect(
-            'color-set',
-            function (color_btn) {
-                let color = gdk_to_css_color(color_btn.get_rgba());
-                let rgb = [color.red, color.green, color.blue];
+        let text_coloration_primary_color = builder.get_object('text_coloration_primary_color');
+        text_coloration_primary_color.set_sensitive(text_coloration_enable_check.get_active());
+        let text_coloration_primary_color_picker = builder.get_object('text_coloration_primary_color_picker');
+        let maximized_text_color = Color.getRGBAFromSettings(settings, 'maximized-text-color');
+        text_coloration_primary_color_picker.set_rgba(maximized_text_color);
+        text_coloration_primary_color_picker.connect('notify::rgba', (check) => {
+            Color.saveRGBtoSettings(settings, 'maximized-text-color', check.get_rgba());
+        });
 
-                settings.set_value(SETTINGS_TEXT_COLOR, new GLib.Variant('(iii)', rgb));
-            }.bind(this)
-        );
+        let text_coloration_secondary_color = builder.get_object('text_coloration_secondary_color');
+        text_coloration_secondary_color.set_sensitive(text_coloration_enable_check.get_active());
+        let text_coloration_secondary_picker = builder.get_object('text_coloration_secondary_color_picker');
+        let text_color = Color.getRGBAFromSettings(settings, 'text-color');
+        text_coloration_secondary_picker.set_rgba(text_color);
+        text_coloration_secondary_picker.connect('notify::rgba', (check) => {
+            Color.saveRGBtoSettings(settings, 'text-color', check.get_rgba());
+        });
 
-        let text_shadow_switch = builder.get_object('text_shadow_switch');
-        let text_shadow_revealer = builder.get_object('text_shadow_revealer');
+        let text_coloration_use_when_maximized = builder.get_object('text_coloration_use_when_maximized');
+        text_coloration_use_when_maximized.set_sensitive(text_coloration_enable_check.get_active());
+        let text_coloration_use_when_maximized_check = builder.get_object('text_coloration_use_when_maximized_check');
+        text_coloration_use_when_maximized_check.set_active(settings.get_boolean('enable-maximized-text-color'));
+        text_coloration_use_when_maximized_check.connect('state-set', (check) => {
+            settings.set_value('enable-maximized-text-color', new GLib.Variant('b', check.get_active()));
+        });
 
-        text_shadow_switch.set_active(settings.get_boolean(SETTINGS_TEXT_SHADOW));
+        let text_coloration_use_when_visible = builder.get_object('text_coloration_use_when_visible');
+        text_coloration_use_when_visible.set_sensitive(text_coloration_enable_check.get_active());
+        let text_coloration_use_when_visible_check = builder.get_object('text_coloration_use_when_visible_check');
+        text_coloration_use_when_visible_check.set_active(settings.get_boolean('enable-overview-text-color'));
+        text_coloration_use_when_visible_check.connect('state-set', (check) => {
+            settings.set_value('enable-overview-text-color', new GLib.Variant('b', check.get_active()));
+        });
 
-        text_shadow_switch.connect(
-            'state-set',
-            function (widget, state) {
-                settings.set_value(SETTINGS_TEXT_SHADOW, new GLib.Variant('b', state));
-                text_shadow_revealer.set_reveal_child(state);
-            }.bind(this)
-        );
+        let text_shadowing_enable_check = builder.get_object('text_shadowing_enable_check');
+        text_shadowing_enable_check.set_active(settings.get_boolean('text-shadow'));
+        text_shadowing_enable_check.connect('state-set', (check) => {
+            settings.set_value('text-shadow', new GLib.Variant('b', check.get_active()));
+        });
 
-        let text_shadow_vertical_offset = builder.get_object('text_shadow_vertical_offset');
-        settings.set_value(
-            SETTINGS_TEXT_SHADOW_POSITION,
-            settings.get_value(SETTINGS_TEXT_SHADOW_POSITION)
-        );
-        text_shadow_vertical_offset.set_value(
-            settings.get_value(SETTINGS_TEXT_SHADOW_POSITION).deep_unpack()[VERTICAL_OFFSET]
-        );
-        text_shadow_vertical_offset.connect(
-            'value-changed',
-            function (widget) {
-                let position = settings.get_value(SETTINGS_TEXT_SHADOW_POSITION).deep_unpack();
-                position[VERTICAL_OFFSET] = widget.get_value_as_int();
-                settings.set_value(
-                    SETTINGS_TEXT_SHADOW_POSITION,
-                    new GLib.Variant('(iii)', position)
-                );
-            }.bind(this)
-        );
+        let text_shadow_x_offset = builder.get_object('text_shadow_x_offset');
+        text_shadow_x_offset.set_sensitive(text_shadowing_enable_check.get_active());
+        let [text_x, text_y, text_shadow] = Position.getFromSettings(settings, 'text-shadow-position');
+        let text_shadow_x_offset_spin = builder.get_object('text_shadow_x_offset_spin');
+        text_shadow_x_offset_spin.set_value(text_x);
 
-        let text_shadow_horizontal_offset = builder.get_object('text_shadow_horizontal_offset');
-        text_shadow_horizontal_offset.set_value(
-            settings.get_value(SETTINGS_TEXT_SHADOW_POSITION).deep_unpack()[HORIZONTAL_OFFSET]
-        );
-        text_shadow_horizontal_offset.connect(
-            'value-changed',
-            function (widget) {
-                let position = settings.get_value(SETTINGS_TEXT_SHADOW_POSITION).deep_unpack();
-                position[HORIZONTAL_OFFSET] = widget.get_value_as_int();
-                settings.set_value(
-                    SETTINGS_TEXT_SHADOW_POSITION,
-                    new GLib.Variant('(iii)', position)
-                );
-            }.bind(this)
-        );
+        let text_shadow_x_offset_timeout_id = null;
+        text_shadow_x_offset_spin.connect('value-changed', (scale) => {
+            text_x = scale.get_value();
+
+            if (text_shadow_x_offset_timeout_id) {
+                GLib.source_remove(text_shadow_x_offset_timeout_id);
+            }
+
+            text_shadow_x_offset_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                Position.saveToSettings(settings, 'text-shadow-position', [text_x, text_y, text_shadow]);
+                text_shadow_x_offset_timeout_id = null;
+                return false;
+            });
+        });
+
+        let text_shadow_y_offset = builder.get_object('text_shadow_y_offset');
+        text_shadow_y_offset.set_sensitive(text_shadowing_enable_check.get_active());
+        let text_shadow_y_offset_spin = builder.get_object('text_shadow_y_offset_spin');
+        text_shadow_y_offset_spin.set_value(text_y);
+
+        let text_shadow_y_offset_timeout_id = null;
+        text_shadow_y_offset_spin.connect('value-changed', (scale) => {
+            text_y = scale.get_value();
+
+            if (text_shadow_y_offset_timeout_id) {
+                GLib.source_remove(text_shadow_y_offset_timeout_id);
+            }
+
+            text_shadow_y_offset_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                Position.saveToSettings(settings, 'text-shadow-position', [text_x, text_y, text_shadow]);
+                text_shadow_y_offset_timeout_id = null;
+                return false;
+            });
+        });
 
         let text_shadow_radius = builder.get_object('text_shadow_radius');
-        text_shadow_radius.set_value(
-            settings.get_value(SETTINGS_TEXT_SHADOW_POSITION).deep_unpack()[BLUR_RADIUS]
-        );
-        text_shadow_radius.connect(
-            'value-changed',
-            function (widget) {
-                let position = settings.get_value(SETTINGS_TEXT_SHADOW_POSITION).deep_unpack();
-                position[BLUR_RADIUS] = widget.get_value_as_int();
-                settings.set_value(
-                    SETTINGS_TEXT_SHADOW_POSITION,
-                    new GLib.Variant('(iii)', position)
-                );
-            }.bind(this)
-        );
+        text_shadow_radius.set_sensitive(text_shadowing_enable_check.get_active());
+        let text_shadow_radius_spin = builder.get_object('text_shadow_radius_spin');
+        text_shadow_radius_spin.set_value(text_shadow);
 
-        let text_shadow_color_btn = builder.get_object('text_shadow_color');
-        text_shadow_color_btn.show_editor = true;
+        let text_shadow_radius_timeout_id = null;
+        text_shadow_radius_spin.connect('value-changed', (scale) => {
+            text_shadow = scale.get_value();
 
-        let text_shadow_color = settings.get_value(SETTINGS_TEXT_SHADOW_COLOR).deep_unpack();
+            if (text_shadow_radius_timeout_id) {
+                GLib.source_remove(text_shadow_radius_timeout_id);
+            }
 
-        css_color =
-            'rgba(' +
-            text_shadow_color[RED] +
-            ',' +
-            text_shadow_color[GREEN] +
-            ',' +
-            text_shadow_color[BLUE] +
-            ',' +
-            text_shadow_color[ALPHA].toFixed(2) +
-            ')';
-        scaled_color = new Gdk.RGBA();
-        if (scaled_color.parse(css_color)) text_shadow_color_btn.set_rgba(scaled_color);
+            text_shadow_radius_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                Position.saveToSettings(settings, 'text-shadow-position', [text_x, text_y, text_shadow]);
+                text_shadow_radius_timeout_id = null;
+                return false;
+            });
+        });
 
-        text_shadow_color_btn.connect(
-            'color-set',
-            function (color_btn) {
-                let color = gdk_to_css_color(color_btn.get_rgba());
-                let alpha = +color_btn.get_rgba().alpha.toFixed(2);
+        let text_shadow_color_row = builder.get_object('text_shadow_color');
+        text_shadow_color_row.set_sensitive(text_shadowing_enable_check.get_active());
+        let text_shadow_color_picker = builder.get_object('text_shadow_color_picker');
+        let text_shadow_color = Color.getRGBAFromSettings(settings, 'text-shadow-color');
+        text_shadow_color_picker.set_rgba(text_shadow_color);
+        text_shadow_color_picker.connect('notify::rgba', (check) => {
+            Color.saveRGBAtoSettings(settings, 'text-shadow-color', check.get_rgba(), '(iiid)');
+        });
 
-                let rgba = [color.red, color.green, color.blue, alpha];
-                settings.set_value(SETTINGS_TEXT_SHADOW_COLOR, new GLib.Variant('(iiid)', rgba));
-            }.bind(this)
-        );
+        let icon_shadowing_enable_check = builder.get_object('icon_shadowing_enable_check');
+        icon_shadowing_enable_check.set_active(settings.get_boolean('icon-shadow'));
+        icon_shadowing_enable_check.connect('state-set', (check) => {
+            settings.set_value('icon-shadow', new GLib.Variant('b', check.get_active()));
+        });
 
-        let icon_shadow = builder.get_object('icon_shadow_switch');
-        let icon_shadow_revealer = builder.get_object('icon_shadow_revealer');
+        let icon_shadow_x_offset = builder.get_object('icon_shadow_x_offset');
+        icon_shadow_x_offset.set_sensitive(icon_shadowing_enable_check.get_active());
+        let [icon_x, icon_y, icon_radius] = Position.getFromSettings(settings, 'icon-shadow-position');
+        let icon_shadow_x_offset_spin = builder.get_object('icon_shadow_x_offset_spin');
+        icon_shadow_x_offset_spin.set_value(icon_x);
 
-        icon_shadow.set_active(settings.get_boolean(SETTINGS_ICON_SHADOW));
+        let icon_shadow_x_offset_timeout_id = null;
+        icon_shadow_x_offset_spin.connect('value-changed', (scale) => {
+            icon_x = scale.get_value();
 
-        icon_shadow.connect(
-            'state-set',
-            function (widget, state) {
-                settings.set_value(SETTINGS_ICON_SHADOW, new GLib.Variant('b', state));
-                icon_shadow_revealer.set_reveal_child(state);
-            }.bind(this)
-        );
+            if (icon_shadow_x_offset_timeout_id) {
+                GLib.source_remove(icon_shadow_x_offset_timeout_id);
+            }
 
-        let icon_shadow_vertical_offset = builder.get_object('icon_shadow_vertical_offset');
+            icon_shadow_x_offset_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                Position.saveToSettings(settings, 'icon-shadow-position', [icon_x, icon_y, icon_radius]);
+                icon_shadow_x_offset_timeout_id = null;
+                return false;
+            });
+        });
 
-        settings.set_value(
-            SETTINGS_ICON_SHADOW_POSITION,
-            settings.get_value(SETTINGS_ICON_SHADOW_POSITION)
-        );
-        icon_shadow_vertical_offset.set_value(
-            settings.get_value(SETTINGS_ICON_SHADOW_POSITION).deep_unpack()[VERTICAL_OFFSET]
-        );
-        icon_shadow_vertical_offset.connect(
-            'value-changed',
-            function (widget) {
-                let position = settings.get_value(SETTINGS_ICON_SHADOW_POSITION).deep_unpack();
-                position[VERTICAL_OFFSET] = widget.get_value_as_int();
-                settings.set_value(
-                    SETTINGS_ICON_SHADOW_POSITION,
-                    new GLib.Variant('(iii)', position)
-                );
-            }.bind(this)
-        );
-        let icon_shadow_horizontal_offset = builder.get_object('icon_shadow_horizontal_offset');
-        icon_shadow_horizontal_offset.set_value(
-            settings.get_value(SETTINGS_ICON_SHADOW_POSITION).deep_unpack()[HORIZONTAL_OFFSET]
-        );
-        icon_shadow_horizontal_offset.connect(
-            'value-changed',
-            function (widget) {
-                let position = settings.get_value(SETTINGS_ICON_SHADOW_POSITION).deep_unpack();
-                position[HORIZONTAL_OFFSET] = widget.get_value_as_int();
-                settings.set_value(
-                    SETTINGS_ICON_SHADOW_POSITION,
-                    new GLib.Variant('(iii)', position)
-                );
-            }.bind(this)
-        );
+        let icon_shadow_y_offset = builder.get_object('icon_shadow_y_offset');
+        icon_shadow_y_offset.set_sensitive(icon_shadowing_enable_check.get_active());
+        let icon_shadow_y_offset_spin = builder.get_object('icon_shadow_y_offset_spin');
+        icon_shadow_y_offset_spin.set_value(icon_y);
+
+        let icon_shadow_y_offset_timeout_id = null;
+        icon_shadow_y_offset_spin.connect('value-changed', (scale) => {
+            icon_y = scale.get_value();
+
+            if (icon_shadow_y_offset_timeout_id) {
+                GLib.source_remove(icon_shadow_y_offset_timeout_id);
+            }
+
+            icon_shadow_y_offset_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                Position.saveToSettings(settings, 'icon-shadow-position', [icon_x, icon_y, icon_radius]);
+                icon_shadow_y_offset_timeout_id = null;
+                return false;
+            });
+        });
+
         let icon_shadow_radius = builder.get_object('icon_shadow_radius');
-        icon_shadow_radius.set_value(
-            settings.get_value(SETTINGS_ICON_SHADOW_POSITION).deep_unpack()[BLUR_RADIUS]
-        );
-        icon_shadow_radius.connect(
-            'value-changed',
-            function (widget) {
-                let position = settings.get_value(SETTINGS_ICON_SHADOW_POSITION).deep_unpack();
-                position[BLUR_RADIUS] = widget.get_value_as_int();
-                settings.set_value(
-                    SETTINGS_ICON_SHADOW_POSITION,
-                    new GLib.Variant('(iii)', position)
-                );
-            }.bind(this)
-        );
+        icon_shadow_radius.set_sensitive(icon_shadowing_enable_check.get_active());
+        let icon_shadow_radius_spin = builder.get_object('icon_shadow_radius_spin');
+        icon_shadow_radius_spin.set_value(icon_radius);
 
-        let icon_shadow_color_btn = builder.get_object('icon_shadow_color');
-        icon_shadow_color_btn.show_editor = true;
+        let icon_shadow_radius_timeout_id = null;
+        icon_shadow_radius_spin.connect('value-changed', (scale) => {
+            icon_radius = scale.get_value();
 
-        let icon_shadow_color = settings.get_value(SETTINGS_ICON_SHADOW_COLOR).deep_unpack();
+            if (icon_shadow_radius_timeout_id) {
+                GLib.source_remove(icon_shadow_radius_timeout_id);
+            }
 
-        css_color =
-            'rgba(' +
-            icon_shadow_color[RED] +
-            ',' +
-            icon_shadow_color[GREEN] +
-            ',' +
-            icon_shadow_color[BLUE] +
-            ',' +
-            icon_shadow_color[ALPHA].toFixed(2) +
-            ')';
-        scaled_color = new Gdk.RGBA();
-        if (scaled_color.parse(css_color)) {
-            icon_shadow_color_btn.set_rgba(scaled_color);
-        }
-
-        icon_shadow_color_btn.connect(
-            'color-set',
-            function (color_btn) {
-                let color = gdk_to_css_color(color_btn.get_rgba());
-                let alpha = +color_btn.get_rgba().alpha.toFixed(2);
-
-                let rgba = [color.red, color.green, color.blue, alpha];
-
-                settings.set_value(SETTINGS_ICON_SHADOW_COLOR, new GLib.Variant('(iiid)', rgba));
-            }.bind(this)
-        );
-    }
-
-    /* Setup Background Tab */
-    {
-        let background_color_switch = builder.get_object('background_color_switch');
-        let opacity_switch = builder.get_object('opacity_switch');
-        let background_color_revealer = builder.get_object('background_color_revealer');
-        let opacity_revealer = builder.get_object('opacity_revealer');
-
-        background_color_switch.set_active(settings.get_boolean(SETTINGS_ENABLE_BACKGROUND_COLOR));
-        background_color_switch.connect(
-            'state-set',
-            function (widget, state) {
-                settings.set_value(SETTINGS_ENABLE_BACKGROUND_COLOR, new GLib.Variant('b', state));
-                background_color_revealer.set_reveal_child(state);
-            }.bind(this)
-        );
-
-        opacity_switch.set_active(settings.get_boolean(SETTINGS_ENABLE_OPACITY));
-        opacity_switch.connect(
-            'state-set',
-            function (widget, state) {
-                settings.set_value(SETTINGS_ENABLE_OPACITY, new GLib.Variant('b', state));
-                opacity_revealer.set_reveal_child(state);
-            }.bind(this)
-        );
-
-        /* Maximum opacity control */
-        let maximum_scale = builder.get_object('maximum_scale');
-        /* Init value. */
-        maximum_scale.adjustment.set_value(settings.get_int(SETTINGS_MAXIMIZED_OPACITY));
-        /* Add formatting */
-        maximum_scale.set_format_value_func((scale, value) => {
-            return ((value / SCALE_FACTOR) * 100).toFixed(0) + '%'; // eslint-disable-line no-magic-numbers
+            icon_shadow_radius_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                Position.saveToSettings(settings, 'icon-shadow-position', [icon_x, icon_y, icon_radius]);
+                icon_shadow_radius_timeout_id = null;
+                return false;
+            });
         });
-        maximum_scale.connect(
-            'value-changed',
-            function (widget) {
-                settings.set_value(
-                    SETTINGS_MAXIMIZED_OPACITY,
-                    new GLib.Variant('i', widget.adjustment.get_value())
-                );
-            }.bind(this)
-        );
 
-        /* Minimum opacity control */
-        let minimum_scale = builder.get_object('minimum_scale');
-        /* Init value. */
-        minimum_scale.adjustment.set_value(settings.get_int(SETTINGS_UNMAXIMIZED_OPACITY));
-        /* Add formatting */
-        minimum_scale.set_format_value_func((scale, value) => {
-            return ((value / SCALE_FACTOR) * 100).toFixed(0) + '%'; // eslint-disable-line no-magic-numbers
+        let icon_shadow_color_row = builder.get_object('icon_shadow_color');
+        icon_shadow_color_row.set_sensitive(icon_shadowing_enable_check.get_active());
+        let icon_shadow_color_picker = builder.get_object('icon_shadow_color_picker');
+        let icon_shadow_color = Color.getRGBAFromSettings(settings, 'icon-shadow-color');
+        icon_shadow_color_picker.set_rgba(icon_shadow_color);
+        icon_shadow_color_picker.connect('notify::rgba', (check) => {
+            Color.saveRGBAtoSettings(settings, 'icon-shadow-color', check.get_rgba(), '(iiid)');
         });
-        minimum_scale.connect(
-            'value-changed',
-            function (widget) {
-                settings.set_value(
-                    SETTINGS_UNMAXIMIZED_OPACITY,
-                    new GLib.Variant('i', widget.adjustment.get_value())
-                );
-            }.bind(this)
-        );
 
-        /* Convert & scale color. */
-        let panel_color = settings.get_value(SETTINGS_PANEL_COLOR).deep_unpack();
+        /* Third tab: Background */
+        let page3 = builder.get_object('background');
 
-        let color_btn = builder.get_object('color_btn');
-        let css_color =
-            'rgba(' +
-            panel_color[RED] +
-            ',' +
-            panel_color[GREEN] +
-            ',' +
-            panel_color[BLUE] +
-            ', 1.0)';
+        let opacity_enable_check = builder.get_object('opacity_enable_check');
+        opacity_enable_check.set_active(settings.get_boolean('enable-opacity'));
+        opacity_enable_check.connect('state-set', (check) => {
+            settings.set_value('enable-opacity', new GLib.Variant('b', check.get_active()));
+        });
 
-        let scaled_color = new Gdk.RGBA();
-        if (scaled_color.parse(css_color)) {
-            color_btn.set_rgba(scaled_color);
-        }
-        color_btn.connect(
-            'color-set',
-            function (color_btn) {
-                let color = gdk_to_css_color(color_btn.get_rgba());
-                let rgb = [color.red, color.green, color.blue];
+        let opacity_window_maximized = builder.get_object('opacity_window_maximized');
+        opacity_window_maximized.set_sensitive(opacity_enable_check.get_active());
+        let opacity_window_maximized_scale = builder.get_object('opacity_window_maximized_scale');
+        opacity_window_maximized_scale.set_value(settings.get_int('maximized-opacity'));
 
-                settings.set_value(SETTINGS_PANEL_COLOR, new GLib.Variant('ai', rgb));
-            }.bind(this)
-        );
+        let opacity_window_maximized_timeout_id = null;
+        opacity_window_maximized_scale.connect('value-changed', (scale) => {
+            let value = scale.get_value();
+
+            if (opacity_window_maximized_timeout_id) {
+                GLib.source_remove(opacity_window_maximized_timeout_id);
+            }
+
+            opacity_window_maximized_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                settings.set_value('maximized-opacity', new GLib.Variant('i', value));
+                opacity_window_maximized_timeout_id = null;
+                return false;
+            });
+        });
+
+        let opacity_no_window_maximized = builder.get_object('opacity_no_window_maximized');
+        opacity_no_window_maximized.set_sensitive(opacity_enable_check.get_active());
+        let opacity_no_window_maximized_scale = builder.get_object('opacity_no_window_maximized_scale');
+        opacity_no_window_maximized_scale.set_value(settings.get_int('unmaximized-opacity'));
+
+        let opacity_no_window_maximized_timeout_id = null;
+        opacity_no_window_maximized_scale.connect('value-changed', (scale) => {
+            let value = scale.get_value();
+
+            if (opacity_no_window_maximized_timeout_id) {
+                GLib.source_remove(opacity_no_window_maximized_timeout_id);
+            }
+
+            opacity_no_window_maximized_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+                settings.set_value('unmaximized-opacity', new GLib.Variant('i', value));
+                opacity_no_window_maximized_timeout_id = null;
+                return false;
+            });
+        });
+
+        let panel_background_color_enable_check = builder.get_object('panel_background_color_enable_check');
+        panel_background_color_enable_check.set_active(settings.get_boolean('enable-background-color'));
+        panel_background_color_enable_check.connect('state-set', (check) => {
+            settings.set_value('enable-background-color', new GLib.Variant('b', check.get_active()));
+        });
+
+        let panel_background_color_row = builder.get_object('panel_background_color_row');
+        panel_background_color_row.set_sensitive(panel_background_color_enable_check.get_active());
+        let panel_background_color_picker = builder.get_object('panel_background_color_picker');
+        let panel_background_color = Color.getRGBAFromSettings(settings, 'panel-color');
+        panel_background_color_picker.set_rgba(panel_background_color);
+        panel_background_color_picker.connect('notify::rgba', (check) => {
+            Color.saveRGBAtoSettings(settings, 'panel-color', check.get_rgba(), 'ai');
+        });
+
+        /*let compatibility_remove_excess_panel_styling_check = builder.get_object('compatibility_remove_excess_panel_styling_check');
+        compatibility_remove_excess_panel_styling_check.set_active(settings.get_boolean('remove-panel-styling'));
+        compatibility_remove_excess_panel_styling_check.connect('state-set', (check) => {
+            settings.set_value('remove-panel-styling', new GLib.Variant('b', check.get_active()));
+        });*/
+
+        window.add(page);
+        window.add(page2);
+        window.add(page3);
+
+        let about_button = builder.get_object('about_button');
+        about_button.connect('clicked', () => {
+            let aboutWindow = new Adw.AboutWindow({
+                application_name: "Dynamic Panel Transparency",
+                application_icon: "computer",
+                version: "45",
+                developer_name: "Evan Welsh (ewlsh)",
+                license_type: Gtk.License.GPL_2_0,
+                website: "https://github.com/ewlsh/dynamic-panel-transparency",
+                issue_url: "https://github.com/ewlsh/dynamic-panel-transparency/issues",
+                developers: ["Evan Welsh (ewlsh)", "Francwa"],
+                translator_credits: "Alexey Varfolomeev (varlesh)\nJonatan Hatakeyama Zeidler (jonnius)\nFábio Nogueira (frnogueira)\nMosaab Alzoubi (moceap)\nAlonso Lara (AlonsoLP)\nDingzhong Chen (wsxy162)\nnarzb",
+                comments: "Classy transparency for your panel."
+            });
+            aboutWindow.show();
+        });
     }
-
-    let about_button = builder.get_object('about_button');
-    let about_dialog = builder.get_object('about_dialog');
-    about_dialog.set_version('v' + Me.metadata['version']);
-    about_button.connect('clicked', () => {
-        about_dialog.set_transient_for(main_widget.get_root());
-        about_dialog.set_modal(true);
-        about_dialog.present();
-    });
-
-    return main_widget;
 }

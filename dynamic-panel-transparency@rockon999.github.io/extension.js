@@ -1,39 +1,31 @@
 /** @typedef {import('./main.js').DptExtension} DptExtension */
 
-/** @type {Promise<null | { new(): DptExtension }>} */
-let asyncInit;
+import { DptExtension } from './main.js';
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-function init() {
-    asyncInit = import('./main.js')
-        .then(({ DptExtension }) => {
-            return DptExtension;
-        })
-        .catch((error) => {
-            logError(error);
-            log('[Dynamic Panel Transparency] Failed to load.');
+export default class ExtensionWrapper extends Extension {
+    /** @type {DptExtension | null} */
+    extension = null;
 
-            return null;
-        });
-}
-
-/** @type {DptExtension | null} */
-let extension = null;
-
-function enable() {
-    asyncInit
-        .then((DptExtension) => {
-            if (!DptExtension) return;
-
-            extension = new DptExtension();
-
-            extension.enable();
-        })
-        .catch((error) => {
+    enable() {
+        try {
+            this.extension = new DptExtension();
+            this.extension.enable();
+        } catch (error) {
             logError(error);
             log('[Dynamic Panel Transparency] Failed to enable.');
-        });
-}
+        }
+    }
 
-function disable() {
-    extension?.disable();
+    disable() {
+        try {
+            if (this.extension) {
+                this.extension.disable();
+                this.extension = null;
+            }
+        } catch (error) {
+            logError(error);
+            log('[Dynamic Panel Transparency] Failed to disable.');
+        }
+    }
 }

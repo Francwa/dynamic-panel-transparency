@@ -1,7 +1,7 @@
 import Gio from 'gi://Gio';
 
 import * as Util from './util.js';
-import { extensionUtils } from './shell.js';
+import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js'
 
 const GNOME_BACKGROUND_SCHEMA = 'org.gnome.desktop.wm.keybindings';
 const SETTINGS_SHOW_DESKTOP = 'show-desktop';
@@ -9,19 +9,21 @@ const SETTINGS_SHOW_DESKTOP = 'show-desktop';
 const GNOME_INTERFACE_SCHEMA = 'org.gnome.desktop.interface';
 const SETTINGS_ENABLE_ANIMATIONS = 'enable-animations';
 
+const EXTENSION_UUID = 'dynamic-panel-transparency@rockon999.github.io';
+
 /** @typedef {import('./theming.js').Color} Color */
 
 export class Settings {
     constructor() {
-        this._settings = extensionUtils.getSettings();
+        var extension = Extension.lookupByUUID(EXTENSION_UUID);
+        this._settings = extension.getSettings();
         this._background_settings = null;
         this._interface_settings = null;
 
+        /* Will fail silently - Not sure if still relevant */
         /* Setup background settings. */
-
         try {
-            let schemaObj = extensionUtils.getSchemaObj(GNOME_BACKGROUND_SCHEMA, true);
-
+            let schemaObj = extension.getSchemaObj(GNOME_BACKGROUND_SCHEMA, true);
             if (schemaObj) {
                 this._background_settings = new Gio.Settings({
                     settings_schema: schemaObj,
@@ -30,8 +32,7 @@ export class Settings {
         } catch (error) {} // eslint-disable-line
 
         try {
-            let schemaObj = extensionUtils.getSchemaObj(GNOME_INTERFACE_SCHEMA, true);
-
+            let schemaObj = extension.getSchemaObj(GNOME_INTERFACE_SCHEMA, true);
             if (schemaObj) {
                 this._interface_settings = new Gio.Settings({
                     settings_schema: schemaObj,

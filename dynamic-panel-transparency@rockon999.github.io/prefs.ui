@@ -1,1036 +1,428 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk" version="4.0"/>
-  <object class="GtkAboutDialog" id="about_dialog">
-    <property name="program_name">Dynamic Panel Transparency</property>
-    <property name="version">Version Unknown</property>
-    <property name="comments" translatable="yes">Classy transparency for your panel.</property>
-    <property name="website">https://github.com/ewlsh/dynamic-panel-transparency</property>
-    <property name="website_label" translatable="yes">Website</property>
-    <property name="authors">Evan Welsh (ewlsh)</property>
-    <property name="translator_credits">Alexey Varfolomeev (varlesh)
-Jonatan Hatakeyama Zeidler (jonnius)
-Fábio Nogueira (frnogueira)
-Mosaab Alzoubi (moceap)
-Alonso Lara (AlonsoLP)
-Dingzhong Chen (wsxy162)
-narzb
-    </property>
-    <property name="logo_icon_name">computer</property>
-    <property name="license_type">gpl-2-0-only</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment1">
-    <property name="upper">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment2">
-    <property name="upper">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment3">
-    <property name="upper">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment4">
-    <property name="upper">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment5">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment6">
-    <property name="upper">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment7">
-    <property name="upper">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkEntryBuffer" id="entry_buffer"/>
-  <object class="GtkAdjustment" id="maximum_opacity_adjustment">
-    <property name="upper">255</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="minimum_opacity_adjustment">
-    <property name="upper">255</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkMessageDialog" id="restart_dialog">
-    <property name="can_focus">0</property>
-    <property name="message_type">question</property>
-    <property name="buttons">yes-no</property>
-    <property name="text" translatable="yes">Shell Restart Required.</property>
-    <property name="secondary_text" translatable="yes" comments="Meant to ask the user if they would like to restart right now or later in a yes/no format.">A shell restart is required to view some of your changes. Do you want to restart now?</property>
-    <property name="secondary_use_markup">1</property>
+  <object class="AdwPreferencesPage" id="transition">
+    <property name="name">transition</property>
+    <property name="title" translatable="yes">Transition</property>
+    <property name="icon-name">applications-engineering-symbolic</property>
     <child>
-      <object class="GtkBox">
-        <property name="visible">0</property>
-        <property name="can_focus">0</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
+      <object class="AdwPreferencesGroup" id="transition_group">
+        <property name="title" translatable="yes">Transition</property>
+        <child>
+          <object class="AdwActionRow" id="transition_speed">
+            <property name="title" translatable="yes">Transition Speed</property>
+            <property name="subtitle" translatable="yes">How long the transition will take.</property>
+            <property name="activatable-widget">transition_speed_scale</property>
+            <child>
+              <object class="GtkScale" id="transition_speed_scale">
+                <property name="valign">center</property>
+                <property name="hexpand">true</property>
+                <property name="width-request">200px</property>
+                <property name="draw-value">true</property>
+                <property name="value-pos">right</property>
+                <property name="digits">0</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">5000</property>
+                    <property name="step-increment">250</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="transition_windows_touch">
+            <property name="title" translatable="yes">Transition when windows touch the panel</property>
+            <property name="subtitle" translatable="yes">Whether the panel should transition when a window touches it or only when a window is actually maximized.</property>
+            <property name="activatable-widget">transition_windows_touch_check</property>
+            <child>
+              <object class="GtkSwitch" id="transition_windows_touch_check">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="transition_with_overview">
+            <property name="title" translatable="yes">Transition with the overview</property>
+            <property name="subtitle" translatable="yes">Whether the panel transitions should happen with the overview transitions or after.</property>
+            <property name="activatable-widget">transition_with_overview_check</property>
+            <child>
+              <object class="GtkSwitch" id="transition_with_overview_check">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="margin-top">20</property>
+            <property name="halign">3</property>
+            <child>
+              <object class="GtkButton" id="about_button">
+                <property name="label" translatable="true">About the exension</property>
+                <property name="halign">3</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </object>
-  <object class="GtkAdjustment" id="speed_adjustment">
-    <property name="upper">5000</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="text_radius_adjustment">
-    <property name="upper">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="text_shadow_hz_adjustment">
-    <property name="upper">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAdjustment" id="text_shadow_vrt_adjustment">
-    <property name="upper">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkBox" id="main_box">
-    <property name="can_focus">0</property>
-    <property name="orientation">vertical</property>
+
+  <object class="AdwPreferencesPage" id="foreground">
+    <property name="name">foreground</property>
+    <property name="title" translatable="yes">Foreground</property>
+    <property name="icon-name">applications-engineering-symbolic</property>
     <child>
-      <object class="GtkNotebook" id="main_notebook">
-        <property name="margin-start">5</property>
-        <property name="margin-end">5</property>
-        <property name="margin_start">5</property>
-        <property name="margin_end">5</property>
+      <object class="AdwPreferencesGroup" id="text_coloration">
+        <property name="title" translatable="yes">Enable custom text coloring</property>
+        <property name="description" translatable="yes">Allows the user to set their own text color.</property>
+        <property name="header-suffix">
+          <object class="GtkSwitch" id="text_coloration_enable_check">
+            <property name="valign">center</property>
+          </object>
+        </property>
         <child>
-          <object class="GtkNotebookPage">
-            <property name="child">
-              <object class="GtkGrid" id="transitions_grid">
-                <property name="can_focus">0</property>
-
-                <property name="margin-start">5</property>
-                <property name="margin-end">5</property>
-                <property name="margin_start">5</property>
-                <property name="margin_end">5</property>
-                <property name="margin_top">5</property>
-                <property name="margin_bottom">5</property>
-                <property name="hexpand">1</property>
-                <child>
-                  <object class="GtkLabel" id="speed_label">
-                    <property name="can_focus">0</property>
-                    <property name="halign">start</property>
-                    <property name="margin-start">5</property>
-                    <property name="margin-end">5</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
-                    <property name="label" translatable="yes" comments="How long the transition will take.">Transition Speed</property>
-                    <property name="use_markup">1</property>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkScale" id="speed_scale">
-                    <property name="draw-value">1</property>
-                    <property name="margin-start">5</property>
-                    <property name="margin-end">5</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
-                    <property name="hexpand">1</property>
-                    <property name="adjustment">speed_adjustment</property>
-                    <property name="round_digits">0</property>
-                    <layout>
-                      <property name="column">1</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkCheckButton" id="transition_with_overview_check">
-                    <property name="tooltip_markup" translatable="yes">Overrides &apos;gtk-enable-animations&apos;.</property>
-                    <property name="halign">start</property>
-
-                    <property name="margin-start">5</property>
-                    <property name="margin-end">5</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="can_focus">0</property>
-                        <property name="margin-start">3</property>
-                        <property name="label" translatable="yes" comments="Whether the panel transitions should happen with the overview transitions or after.">Transition with the overview</property>
-                      </object>
-                    </child>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">2</property>
-                      <property name="column-span">2</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkCheckButton" id="transition_windows_touch_check">
-                    <property name="tooltip_markup" translatable="yes">Overrides &apos;gtk-enable-animations&apos;.</property>
-                    <property name="halign">start</property>
-
-                    <property name="margin-start">5</property>
-                    <property name="margin-end">5</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="can_focus">0</property>
-                        <property name="margin-start">3</property>
-                        <property name="label" translatable="yes" comments="Whether the panel should transition when a window touches it or only when a window is actually maximized.">Transition when windows touch the panel</property>
-                      </object>
-                    </child>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">1</property>
-                      <property name="column-span">2</property>
-                    </layout>
-                  </object>
-                </child>
+          <object class="AdwActionRow" id="text_coloration_primary_color">
+            <property name="title" translatable="yes">Primary Color</property>
+            <property name="subtitle" translatable="yes">The main color to be used.</property>
+            <property name="activatable-widget">text_coloration_primary_color_picker</property>
+            <property name="sensitive" bind-source="text_coloration_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkColorButton" id="text_coloration_primary_color_picker">
+                <property name="receives_default">1</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
               </object>
-            </property>
-            <property name="tab">
-              <object class="GtkLabel">
-                <property name="can_focus">0</property>
-                <property name="hexpand">1</property>
-                <property name="label" translatable="yes">Transitions</property>
-              </object>
-            </property>
+            </child>
           </object>
         </child>
         <child>
-          <object class="GtkNotebookPage">
-            <property name="position">1</property>
-            <property name="child">
-              <object class="GtkGrid" id="text_grid">
-                <property name="can_focus">0</property>
-                <property name="margin_start">20</property>
-                <property name="margin_end">20</property>
-                <property name="margin_top">20</property>
-                <property name="margin_bottom">20</property>
-                <property name="hexpand">1</property>
-                <property name="row_spacing">5</property>
-                <property name="column_spacing">10</property>
-                <child>
-                  <object class="GtkFrame">
-                    <property name="can_focus">0</property>
-                    <property name="hexpand">1</property>
-                    <property name="label_xalign">0.029999999329447746</property>
-                    <child>
-                      <object class="GtkGrid">
-                        <property name="margin_start">20</property>
-                        <property name="margin_end">20</property>
-                        <property name="margin_top">20</property>
-                        <property name="margin_bottom">20</property>
-                        <property name="can_focus">0</property>
-                        <property name="hexpand">1</property>
-                        <property name="column_spacing">10</property>
-                        <property name="column_homogeneous">1</property>
-                        <child>
-                          <object class="GtkSwitch" id="text_color_switch">
-                            <property name="halign">end</property>
-                            <layout>
-                              <property name="column">1</property>
-                              <property name="row">0</property>
-                            </layout>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel">
-                            <property name="can_focus">0</property>
-                            <property name="halign">start</property>
-
-                            <property name="label" translatable="yes" comments="Allows the user to set their own text color.">Enable custom text coloring</property>
-                            <property name="use_markup">1</property>
-                            <layout>
-                              <property name="column">0</property>
-                              <property name="row">0</property>
-                            </layout>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkRevealer" id="text_color_revealer">
-                            <property name="can_focus">0</property>
-                            <property name="reveal_child">1</property>
-                            <property name="child">
-                              <object class="GtkGrid">
-                                <property name="can_focus">0</property>
-                                <property name="margin_top">5</property>
-                                <property name="margin_bottom">5</property>
-                                <property name="row_spacing">5</property>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="can_focus">0</property>
-                                    <property name="halign">start</property>
-
-                                    <property name="hexpand">1</property>
-                                    <property name="label" translatable="yes" comments="The main color to be used.">Primary Color</property>
-                                    <property name="use_markup">1</property>
-                                    <layout>
-                                      <property name="column">0</property>
-                                      <property name="row">0</property>
-                                    </layout>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkColorButton" id="text_color_btn">
-                                    <property name="receives_default">1</property>
-                                    <property name="halign">end</property>
-                                    <property name="hexpand">1</property>
-                                    <property name="title" translatable="yes">Primary Color</property>
-                                    <layout>
-                                      <property name="column">1</property>
-                                      <property name="row">0</property>
-                                    </layout>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="can_focus">0</property>
-                                    <property name="halign">start</property>
-
-                                    <property name="hexpand">1</property>
-                                    <property name="label" translatable="yes" comments="Another color for special functions.">Secondary Color</property>
-                                    <layout>
-                                      <property name="column">0</property>
-                                      <property name="row">1</property>
-                                    </layout>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkColorButton" id="maximized_text_color_btn">
-                                    <property name="receives_default">1</property>
-                                    <property name="halign">end</property>
-                                    <property name="hexpand">1</property>
-                                    <property name="title" translatable="yes">Secondary Color</property>
-                                    <layout>
-                                      <property name="column">1</property>
-                                      <property name="row">1</property>
-                                    </layout>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkCheckButton" id="maximized_text_color_check">
-                                    <property name="halign">start</property>
-
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="margin-start">3</property>
-                                        <property name="label" translatable="yes">Use when a window is maximized</property>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">0</property>
-                                      <property name="row">2</property>
-                                      <property name="column-span">2</property>
-                                    </layout>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkCheckButton" id="overview_text_color_check">
-                                    <property name="halign">start</property>
-
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="margin-start">3</property>
-                                        <property name="label" translatable="yes">Use when the overview is visible</property>
-                                      </object>
-                                    </child>
-                                    <layout>
-                                      <property name="column">0</property>
-                                      <property name="row">3</property>
-                                      <property name="column-span">2</property>
-                                    </layout>
-                                  </object>
-                                </child>
-                              </object>
-                            </property>
-                            <layout>
-                              <property name="column">0</property>
-                              <property name="row">1</property>
-                              <property name="column-span">2</property>
-                            </layout>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child type="label_item">
-                      <placeholder/>
-                    </child>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkBox">
-                    <property name="can_focus">0</property>
-                    <property name="margin_top">10</property>
-                    <property name="hexpand">1</property>
-                    <property name="spacing">10</property>
-                    <child>
-                      <object class="GtkFrame">
-                        <property name="can_focus">0</property>
-
-                        <property name="hexpand">1</property>
-                        <property name="label_xalign">0.05999999865889549</property>
-                        <child>
-                          <object class="GtkGrid">
-                            <property name="margin_start">20</property>
-                            <property name="margin_end">20</property>
-                            <property name="margin_top">20</property>
-                            <property name="margin_bottom">20</property>
-                            <property name="can_focus">0</property>
-                            <property name="hexpand">1</property>
-                            <property name="column_spacing">10</property>
-                            <property name="column_homogeneous">1</property>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="can_focus">0</property>
-                                <property name="halign">start</property>
-
-                                <property name="label" translatable="yes">Enable text shadowing</property>
-                                <layout>
-                                  <property name="column">0</property>
-                                  <property name="row">0</property>
-                                </layout>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkSwitch" id="text_shadow_switch">
-                                <property name="halign">end</property>
-                                <layout>
-                                  <property name="column">1</property>
-                                  <property name="row">0</property>
-                                </layout>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkRevealer" id="text_shadow_revealer">
-                                <property name="can_focus">0</property>
-                                <property name="reveal_child">1</property>
-                                <property name="child">
-                                  <object class="GtkGrid">
-                                    <property name="can_focus">0</property>
-                                    <property name="margin_top">10</property>
-                                    <property name="margin_bottom">5</property>
-                                    <property name="row_spacing">10</property>
-                                    <property name="column_spacing">10</property>
-                                    <property name="row_homogeneous">1</property>
-                                    <property name="column_homogeneous">1</property>
-                                    <child>
-                                      <object class="GtkColorButton" id="text_shadow_color">
-                                        <property name="receives_default">1</property>
-                                        <property name="halign">end</property>
-                                        <property name="title" translatable="yes">Shadow Color</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">3</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkSpinButton" id="text_shadow_radius">
-                                        <property name="halign">end</property>
-
-                                        <property name="text">0</property>
-                                        <property name="adjustment">text_radius_adjustment</property>
-                                        <property name="snap_to_ticks">1</property>
-                                        <property name="numeric">1</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">2</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkSpinButton" id="text_shadow_horizontal_offset">
-                                        <property name="halign">end</property>
-
-                                        <property name="text">0</property>
-                                        <property name="adjustment">text_shadow_hz_adjustment</property>
-                                        <property name="snap_to_ticks">1</property>
-                                        <property name="numeric">1</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">1</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkSpinButton" id="text_shadow_vertical_offset">
-                                        <property name="halign">end</property>
-
-                                        <property name="text">0</property>
-                                        <property name="adjustment">text_shadow_vrt_adjustment</property>
-                                        <property name="snap_to_ticks">1</property>
-                                        <property name="numeric">1</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">0</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-
-                                        <property name="label" translatable="yes">Shadow Color</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">3</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-
-                                        <property name="label" translatable="yes">Radius</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">2</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-
-                                        <property name="label" translatable="yes">Horizontal Offset</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">1</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-
-                                        <property name="label" translatable="yes">Vertical Offset</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">0</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </property>
-                                <layout>
-                                  <property name="column">0</property>
-                                  <property name="row">1</property>
-                                  <property name="column-span">2</property>
-                                </layout>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkFrame">
-                        <property name="can_focus">0</property>
-
-                        <property name="hexpand">1</property>
-                        <property name="label_xalign">0.05999999865889549</property>
-                        <child>
-                          <object class="GtkGrid">
-                            <property name="margin_start">20</property>
-                            <property name="margin_end">20</property>
-                            <property name="margin_top">20</property>
-                            <property name="margin_bottom">20</property>
-                            <property name="can_focus">0</property>
-                            <property name="hexpand">1</property>
-                            <property name="column_spacing">10</property>
-                            <property name="column_homogeneous">1</property>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="can_focus">0</property>
-                                <property name="halign">start</property>
-
-                                <property name="label" translatable="yes">Enable icon shadowing</property>
-                                <layout>
-                                  <property name="column">0</property>
-                                  <property name="row">0</property>
-                                </layout>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkSwitch" id="icon_shadow_switch">
-                                <property name="halign">end</property>
-                                <layout>
-                                  <property name="column">1</property>
-                                  <property name="row">0</property>
-                                </layout>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkRevealer" id="icon_shadow_revealer">
-                                <property name="can_focus">0</property>
-                                <property name="reveal_child">1</property>
-                                <property name="child">
-                                  <object class="GtkGrid">
-                                    <property name="can_focus">0</property>
-                                    <property name="margin_top">10</property>
-                                    <property name="margin_bottom">5</property>
-                                    <property name="row_spacing">10</property>
-                                    <property name="column_spacing">10</property>
-                                    <property name="row_homogeneous">1</property>
-                                    <property name="column_homogeneous">1</property>
-                                    <child>
-                                      <object class="GtkColorButton" id="icon_shadow_color">
-                                        <property name="receives_default">1</property>
-                                        <property name="halign">end</property>
-                                        <property name="title" translatable="yes">Shadow Color</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">3</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkSpinButton" id="icon_shadow_radius">
-                                        <property name="halign">end</property>
-
-                                        <property name="text">0</property>
-                                        <property name="adjustment">adjustment1</property>
-                                        <property name="snap_to_ticks">1</property>
-                                        <property name="numeric">1</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">2</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkSpinButton" id="icon_shadow_horizontal_offset">
-                                        <property name="halign">end</property>
-
-                                        <property name="text">0</property>
-                                        <property name="adjustment">adjustment6</property>
-                                        <property name="snap_to_ticks">1</property>
-                                        <property name="numeric">1</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">1</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkSpinButton" id="icon_shadow_vertical_offset">
-                                        <property name="halign">end</property>
-
-                                        <property name="text">0</property>
-                                        <property name="adjustment">adjustment7</property>
-                                        <property name="snap_to_ticks">1</property>
-                                        <property name="numeric">1</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">0</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-
-                                        <property name="label" translatable="yes">Shadow Color</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">3</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-
-                                        <property name="label" translatable="yes">Radius</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">2</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-
-                                        <property name="label" translatable="yes">Horizontal Offset</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">1</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-
-                                        <property name="label" translatable="yes">Vertical Offset</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">0</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </property>
-                                <layout>
-                                  <property name="column">0</property>
-                                  <property name="row">1</property>
-                                  <property name="column-span">2</property>
-                                </layout>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                      </object>
-                    </child>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">1</property>
-                    </layout>
-                  </object>
-                </child>
+          <object class="AdwActionRow" id="text_coloration_secondary_color">
+            <property name="title" translatable="yes">Secondary Color</property>
+            <property name="subtitle" translatable="yes">Another color for special functions.</property>
+            <property name="activatable-widget">text_coloration_secondary_color_picker</property>
+            <property name="sensitive" bind-source="text_coloration_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkColorButton" id="text_coloration_secondary_color_picker">
+                <property name="receives_default">1</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
               </object>
-            </property>
-            <property name="tab">
-              <object class="GtkLabel">
-                <property name="can_focus">0</property>
-                <property name="hexpand">1</property>
-                <property name="label" translatable="yes">Foreground</property>
-              </object>
-            </property>
+            </child>
           </object>
         </child>
         <child>
-          <object class="GtkNotebookPage">
-            <property name="position">2</property>
-            <property name="child">
-              <object class="GtkBox" id="background_box">
-                <property name="can_focus">0</property>
-                <property name="margin-start">20</property>
-                <property name="margin-end">20</property>
-                <property name="margin_start">20</property>
-                <property name="margin_end">20</property>
-                <property name="margin_top">20</property>
-                <property name="margin_bottom">20</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkGrid" id="background_grid">
-                    <property name="can_focus">0</property>
-                    <property name="hexpand">1</property>
-                    <property name="row_spacing">5</property>
-                    <property name="column_spacing">10</property>
-                    <child>
-                      <object class="GtkFrame">
-                        <property name="can_focus">0</property>
-                        <property name="margin_bottom">5</property>
-                        <property name="hexpand">1</property>
-                        <child>
-                          <object class="GtkGrid">
-                            <property name="margin_start">20</property>
-                            <property name="margin_end">20</property>
-                            <property name="margin_top">20</property>
-                            <property name="margin_bottom">20</property>
-                            <property name="can_focus">0</property>
-                            <child>
-                              <object class="GtkRevealer" id="opacity_revealer">
-                                <property name="can_focus">0</property>
-                                <property name="hexpand">1</property>
-                                <property name="reveal_child">1</property>
-                                <property name="child">
-                                  <object class="GtkGrid" id="opacity_grid">
-                                    <property name="can_focus">0</property>
-                                    <property name="column_spacing">10</property>
-                                    <child>
-                                      <object class="GtkLabel" id="minimum_label">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-                                        <property name="margin_top">5</property>
-                                        <property name="margin_bottom">5</property>
-                                        <property name="label" translatable="yes" comments="Opacity of the panel when no window is maximized.">Unmaximized Opacity</property>
-                                        <property name="use_markup">1</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">1</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkScale" id="maximum_scale">
-                                        <property name="draw-value">1</property>
-                                        <property name="margin-end">5</property>
-                                        <property name="margin_top">5</property>
-                                        <property name="margin_bottom">12</property>
-                                        <property name="hexpand">1</property>
-                                        <property name="adjustment">maximum_opacity_adjustment</property>
-                                        <property name="round_digits">1</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">0</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkScale" id="minimum_scale">
-                                        <property name="draw-value">1</property>
-                                        <property name="margin-end">5</property>
-                                        <property name="margin_top">5</property>
-                                        <property name="margin_bottom">12</property>
-                                        <property name="hexpand">1</property>
-                                        <property name="adjustment">minimum_opacity_adjustment</property>
-                                        <property name="round_digits">1</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">1</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel" id="maximum_label">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-                                        <property name="margin_top">5</property>
-                                        <property name="margin_bottom">5</property>
-                                        <property name="label" translatable="yes" comments="Opacity of the panel when a window is maximized.">Maximized Opacity</property>
-                                        <property name="use_markup">1</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">0</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </property>
-                                <layout>
-                                  <property name="column">0</property>
-                                  <property name="row">1</property>
-                                  <property name="column-span">2</property>
-                                </layout>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="can_focus">0</property>
-                                <property name="halign">start</property>
-                                <property name="label" translatable="yes" comments="Allows the user to set their own opacity.">Enable custom opacity</property>
-                                <layout>
-                                  <property name="column">0</property>
-                                  <property name="row">0</property>
-                                </layout>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkSwitch" id="opacity_switch">
-                                <property name="halign">end</property>
-                                <layout>
-                                  <property name="column">1</property>
-                                  <property name="row">0</property>
-                                </layout>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                        <layout>
-                          <property name="column">0</property>
-                          <property name="row">0</property>
-                        </layout>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkFrame">
-                        <property name="can_focus">0</property>
-                        <property name="margin_top">5</property>
-                        <property name="hexpand">1</property>
-                        <child>
-                          <object class="GtkGrid">
-                            <property name="margin_start">20</property>
-                            <property name="margin_end">20</property>
-                            <property name="margin_top">20</property>
-                            <property name="margin_bottom">20</property>
-                            <property name="can_focus">0</property>
-                            <child>
-                              <object class="GtkRevealer" id="background_color_revealer">
-                                <property name="can_focus">0</property>
-                                <property name="hexpand">1</property>
-                                <property name="reveal_child">1</property>
-                                <property name="child">
-                                  <object class="GtkGrid" id="color_grid">
-                                    <property name="can_focus">0</property>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="can_focus">0</property>
-                                        <property name="halign">start</property>
-                                        <property name="hexpand">1</property>
-                                        <property name="label" translatable="yes" comments="The panel&apos;s background color.">Panel Color</property>
-                                        <property name="use_markup">1</property>
-                                        <layout>
-                                          <property name="column">0</property>
-                                          <property name="row">0</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkColorButton" id="color_btn">
-                                        <property name="receives_default">1</property>
-                                        <property name="halign">end</property>
-                                        <property name="margin_top">5</property>
-                                        <property name="title" translatable="yes">Panel Color</property>
-                                        <layout>
-                                          <property name="column">1</property>
-                                          <property name="row">0</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </property>
-                                <layout>
-                                  <property name="column">0</property>
-                                  <property name="row">1</property>
-                                  <property name="column-span">2</property>
-                                </layout>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="can_focus">0</property>
-                                <property name="halign">start</property>
-                                <property name="label" translatable="yes" comments="Allows the user to set their own background color for the panel.">Enable custom panel color</property>
-                                <layout>
-                                  <property name="column">0</property>
-                                  <property name="row">0</property>
-                                </layout>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkSwitch" id="background_color_switch">
-                                <property name="halign">end</property>
-                                <layout>
-                                  <property name="column">1</property>
-                                  <property name="row">0</property>
-                                </layout>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
-                        <layout>
-                          <property name="column">0</property>
-                          <property name="row">1</property>
-                        </layout>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkGrid" id="other_grid">
-                    <property name="can_focus">0</property>
-                    <property name="halign">start</property>
-                    <property name="margin_top">10</property>
-                    <property name="margin_bottom">5</property>
-                    <property name="hexpand">1</property>
-                    <property name="row_spacing">5</property>
-                    <property name="row_homogeneous">1</property>
-                    <property name="column_homogeneous">1</property>
-                    <child>
-                      <object class="GtkCheckButton" id="remove_panel_styling_check">
-                        <child>
-                          <object class="GtkBox">
-                            <property name="can_focus">0</property>
-                            <property name="spacing">5</property>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="can_focus">0</property>
-                                <property name="label" translatable="yes" comments="Removes any extra styling certain themes may have. Fixes theme issues.">Remove excess panel styling</property>
-                                <property name="single_line_mode">1</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="can_focus">0</property>
-                                <property name="label" translatable="yes">(Fixes theme incompatibilities.)</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <layout>
-                          <property name="column">0</property>
-                          <property name="row">0</property>
-                        </layout>
-                      </object>
-                    </child>
-                  </object>
-                </child>
+          <object class="AdwActionRow" id="text_coloration_use_when_maximized">
+            <property name="title" translatable="yes">Use when a window is maximized.</property>
+            <property name="subtitle" translatable="yes">Use primary color when a window is maxzimized.</property>
+            <property name="activatable-widget">text_coloration_use_when_maximized_check</property>
+            <property name="sensitive" bind-source="text_coloration_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkSwitch" id="text_coloration_use_when_maximized_check">
+                <property name="valign">center</property>
               </object>
-            </property>
-            <property name="tab">
-              <object class="GtkLabel">
-                <property name="name">xs</property>
-                <property name="can_focus">0</property>
-                <property name="hexpand">1</property>
-                <property name="label" translatable="yes">Background</property>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="text_coloration_use_when_visible">
+            <property name="title" translatable="yes">Use when the overview is visible.</property>
+            <property name="subtitle" translatable="yes">Use primary color in the overview.</property>
+            <property name="activatable-widget">text_coloration_use_when_visible_check</property>
+            <property name="sensitive" bind-source="text_coloration_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkSwitch" id="text_coloration_use_when_visible_check">
+                <property name="valign">center</property>
               </object>
-            </property>
+            </child>
           </object>
         </child>
       </object>
     </child>
     <child>
-      <object class="GtkButton" id="about_button">
-        <property name="halign">end</property>
-        <property name="label" translatable="yes">About</property>
-        <property name="margin_start">5</property>
-        <property name="margin_end">5</property>
-        <property name="margin_top">5</property>
-        <property name="margin_bottom">5</property>
+      <object class="AdwPreferencesGroup" id="text_shadow">
+        <property name="title" translatable="yes">Enable text shadowing</property>
+        <property name="header-suffix">
+          <object class="GtkSwitch" id="text_shadowing_enable_check">
+            <property name="valign">center</property>
+          </object>
+        </property>
+        <child>
+          <object class="AdwActionRow" id="text_shadow_x_offset">
+            <property name="title" translatable="yes">Horizontal Offset</property>
+            <property name="sensitive" bind-source="text_shadowing_enable_check" bind-property="state"/>
+            <property name="activatable-widget">text_shadow_x_offset_spin</property>
+            <child>
+              <object class="GtkSpinButton" id="text_shadow_x_offset_spin">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">10</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="margin_top">8</property>
+                <property name="margin_bottom">8</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="text_shadow_y_offset">
+            <property name="title" translatable="yes">Vertical Offset</property>
+            <property name="sensitive" bind-source="text_shadowing_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkSpinButton" id="text_shadow_y_offset_spin">
+                <property name="halign">end</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">10</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="margin_top">8</property>
+                <property name="margin_bottom">8</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="text_shadow_radius">
+            <property name="title" translatable="yes">Radius</property>
+            <property name="sensitive" bind-source="text_shadowing_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkSpinButton" id="text_shadow_radius_spin">
+                <property name="halign">end</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">10</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="margin_top">8</property>
+                <property name="margin_bottom">8</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="text_shadow_color">
+            <property name="title" translatable="yes">Shadow Color</property>
+            <property name="subtitle" translatable="yes">The color of the shadow.</property>
+            <property name="activatable-widget">text_shadow_color_picker</property>
+            <property name="sensitive" bind-source="text_shadowing_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkColorButton" id="text_shadow_color_picker">
+                <property name="receives_default">1</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
     <child>
-      <placeholder/>
+      <object class="AdwPreferencesGroup" id="icon_shadowing">
+        <property name="title" translatable="yes">Enable icon shadowing.</property>
+        <property name="header-suffix">
+          <object class="GtkSwitch" id="icon_shadowing_enable_check">
+            <property name="valign">center</property>
+          </object>
+        </property>
+        <child>
+          <object class="AdwActionRow" id="icon_shadow_x_offset">
+            <property name="title" translatable="yes">Horizontal Offset</property>
+            <property name="sensitive" bind-source="icon_shadowing_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkSpinButton" id="icon_shadow_x_offset_spin">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">10</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="margin_top">8</property>
+                <property name="margin_bottom">8</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="icon_shadow_y_offset">
+            <property name="title" translatable="yes">Vertical Offset</property>
+            <property name="sensitive" bind-source="icon_shadowing_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkSpinButton" id="icon_shadow_y_offset_spin">
+                <property name="halign">end</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">10</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="margin_top">8</property>
+                <property name="margin_bottom">8</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="icon_shadow_radius">
+            <property name="title" translatable="yes">Radius</property>
+            <property name="sensitive" bind-source="icon_shadowing_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkSpinButton" id="icon_shadow_radius_spin">
+                <property name="halign">end</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">10</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
+                <property name="digits">0</property>
+                <property name="margin_top">8</property>
+                <property name="margin_bottom">8</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="icon_shadow_color">
+            <property name="title" translatable="yes">Shadow Color</property>
+            <property name="subtitle" translatable="yes">The color of the shadow.</property>
+            <property name="activatable-widget">text_shadow_color_picker</property>
+            <property name="sensitive" bind-source="icon_shadowing_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkColorButton" id="icon_shadow_color_picker">
+                <property name="receives_default">1</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
     </child>
   </object>
-  <object class="GtkAdjustment" id="vertical_scroller">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
+
+  <object class="AdwPreferencesPage" id="background">
+    <property name="name">background</property>
+    <property name="title" translatable="yes">Background</property>
+    <property name="icon-name">applications-engineering-symbolic</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="opacity">
+        <property name="title" translatable="yes">Opacity</property>
+        <property name="header-suffix">
+          <object class="GtkSwitch" id="opacity_enable_check">
+            <property name="valign">center</property>
+          </object>
+        </property>
+        <child>
+          <object class="AdwActionRow" id="opacity_window_maximized">
+            <property name="title" translatable="yes">Window Maximized Opacity</property>
+            <property name="subtitle" translatable="yes">Opacity of the panel when a window is maximized.</property>
+            <property name="activatable-widget">opacity_window_maximized_scale</property>
+            <property name="sensitive" bind-source="opacity_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkScale" id="opacity_window_maximized_scale">
+                <property name="valign">center</property>
+                <property name="hexpand">true</property>
+                <property name="width-request">300px</property>
+                <property name="draw-value">true</property>
+                <property name="value-pos">right</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">255</property>
+                    <property name="step-increment">5</property>
+                  </object>
+                </property>
+                <property name="digits">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="opacity_no_window_maximized">
+            <property name="title" translatable="yes">No Window Maximized Opacity</property>
+            <property name="subtitle" translatable="yes">Opacity of the panel when no window is maximized.</property>
+            <property name="activatable-widget">opacity_no_window_maximized_scale</property>
+            <property name="sensitive" bind-source="opacity_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkScale" id="opacity_no_window_maximized_scale">
+                <property name="valign">center</property>
+                <property name="hexpand">true</property>
+                <property name="width-request">300px</property>
+                <property name="draw-value">true</property>
+                <property name="value-pos">right</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">255</property>
+                    <property name="step-increment">5</property>
+                  </object>
+                </property>
+                <property name="digits">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup" id="panel_background_color">
+        <property name="title" translatable="yes">Panel Background Color</property>
+        <property name="header-suffix">
+          <object class="GtkSwitch" id="panel_background_color_enable_check">
+            <property name="valign">center</property>
+          </object>
+        </property>
+        <child>
+          <object class="AdwActionRow" id="panel_background_color_row">
+            <property name="title" translatable="yes">Background Color</property>
+            <property name="subtitle" translatable="yes">Allows the user to set the background color of the panel.</property>
+            <property name="activatable-widget">panel_background_color_picker</property>
+            <property name="sensitive" bind-source="panel_background_color_enable_check" bind-property="state"/>
+            <child>
+              <object class="GtkColorButton" id="panel_background_color_picker">
+                <property name="receives_default">1</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <!--<child>
+      <object class="AdwPreferencesGroup" id="compatibility">
+        <property name="title" translatable="yes">Compatibility</property>
+        <child>
+          <object class="AdwActionRow" id="compatibility_remove_excess_panel_styling">
+            <property name="title" translatable="yes">Remove excess panel styling</property>
+            <property name="subtitle" translatable="yes">Removes any extra styling certain themes may have. Fixes theme issues.</property>
+            <child>
+              <object class="GtkSwitch" id="compatibility_remove_excess_panel_styling_check">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>-->
   </object>
 </interface>

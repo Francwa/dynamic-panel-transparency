@@ -1,10 +1,10 @@
 // @ts-expect-error
-const Main = imports.ui.main;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 // @ts-expect-error
-const ExtensionUtils = imports.misc.extensionUtils;
+import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js'
 // @ts-expect-error
-const Config = imports.misc.config;
+import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 
-export { ExtensionUtils as extensionUtils };
+export { Extension };
 export { Main as main };
 export { Config };

@@ -1,6 +1,7 @@
 /* exported init, enable, disable */
 
 import St from 'gi://St';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import * as Util from './util.js';
 
@@ -13,7 +14,7 @@ import { Transitions } from './transitions.js';
 import { main } from './shell.js';
 import { setTimeout } from './timers.js';
 
-const SETTINGS_DELAY = 3000;
+const SETTINGS_DELAY = 500;
 
 export class DptExtension {
     constructor() {
@@ -248,39 +249,6 @@ export class DptExtension {
             }, SETTINGS_DELAY));
         });
 
-        settings.on('panel-color', () => {
-            theming.remove_background_color();
-
-            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
-
-            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                let stylesheet = theming.stylesheets[i];
-                if (
-                    stylesheet.indexOf('background') !== -1 &&
-                    stylesheet.indexOf('panel.dpt.css') !== -1
-                ) {
-                    theme.unload_stylesheet(Util.get_file(stylesheet));
-                    Util.remove_file(stylesheet);
-                    theming.stylesheets.splice(i, 1);
-                }
-            }
-
-            theming.register_background_color(settings.get_panel_color(), 'custom');
-
-            const id = (this.panel_color_update_id = setTimeout(() => {
-                if (id !== this.panel_color_update_id) {
-                    return;
-                }
-
-                /* Get Rid of the Panel's CSS Background */
-                theming.remove_background_color();
-
-                intellifader.forceSyncCheck();
-
-                return;
-            }, SETTINGS_DELAY));
-        });
-
         settings.on('text-shadow', () => {
             if (settings.add_text_shadow()) {
                 theming.add_text_shadow();
@@ -452,6 +420,117 @@ export class DptExtension {
             } else {
                 theming.remove_text_color();
                 theming.remove_text_color('maximized');
+            }
+            intellifader.forceSyncCheck();
+        });
+
+        settings.on('text-color', () => {
+            main.panel.remove_style_class_name('dpt-panel-text-color');
+
+            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+
+            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
+                let stylesheet = theming.stylesheets[i];
+                if (
+                    stylesheet.indexOf('foreground') !== -1 &&
+                    stylesheet.indexOf('text-color') !== -1
+                ) {
+                    theme.unload_stylesheet(Util.get_file(stylesheet));
+                    Util.remove_file(stylesheet);
+                    theming.stylesheets.splice(i, 1);
+                }
+            }
+
+            const id = (this.text_color_update_id = setTimeout(() => {
+                if (id !== this.text_color_update_id) {
+                    return;
+                }
+
+                theming.remove_background_color();
+                theming.register_text_color(settings.get_text_color());
+
+                intellifader.forceSyncCheck();
+
+                return;
+            }, SETTINGS_DELAY));
+        });
+
+        settings.on('maximized-text-color', () => {
+            main.panel.remove_style_class_name('dpt-panel-maximized-text-color');
+
+            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+
+            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
+                let stylesheet = theming.stylesheets[i];
+                if (
+                    stylesheet.indexOf('foreground') !== -1 &&
+                    stylesheet.indexOf('maximized-text-color') !== -1
+                ) {
+                    theme.unload_stylesheet(Util.get_file(stylesheet));
+                    Util.remove_file(stylesheet);
+                    theming.stylesheets.splice(i, 1);
+                }
+            }
+
+            const id = (this.maximized_text_color_update_id = setTimeout(() => {
+                if (id !== this.maximized_text_color_update_id) {
+                    return;
+                }
+
+                theming.remove_maximized_background_color();
+                theming.register_text_color(settings.get_maximized_text_color(), 'maximized');
+
+                intellifader.forceSyncCheck();
+
+                return;
+            }, SETTINGS_DELAY));
+        });
+
+        settings.on('panel-color', () => {
+            main.panel.remove_style_class_name('dpt-panel-color');
+
+            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+
+            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
+                let stylesheet = theming.stylesheets[i];
+                log(stylesheet);
+                if (
+                    stylesheet.indexOf('background') !== -1 &&
+                    stylesheet.indexOf('panel-custom') !== -1
+                ) {
+                    theme.unload_stylesheet(Util.get_file(stylesheet));
+                    Util.remove_file(stylesheet);
+                    theming.stylesheets.splice(i, 1);
+                }
+            }
+
+            const id = (this.panel_color_update_id = setTimeout(() => {
+                if (id !== this.panel_color_update_id) {
+                    return;
+                }
+
+                theming.remove_background_color();
+                theming.register_background_color(settings.get_panel_color(), 'custom');
+
+                intellifader.forceSyncCheck();
+
+                return;
+            }, SETTINGS_DELAY));
+        });
+
+        settings.on('enable-background-color', () => {
+            if (settings.enable_custom_background_color()) {
+                intellifader.forceSyncCheck();
+            } else {
+                theming.remove_background_color();
+            }
+        });
+
+        settings.on('enable-opacity', () => {
+            if (settings.enable_custom_opacity()) {
+                intellifader.forceSyncCheck();
+            } else {
+                theming.remove_opacity();
             }
         });
     }

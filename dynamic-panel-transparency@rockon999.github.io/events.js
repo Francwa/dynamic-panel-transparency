@@ -56,10 +56,10 @@ export class Events {
             log("[Dynamic Panel Transparency] Error could not register 'restacked' event.");
         }
 
-        this._windowActorAddedSig = global.window_group.connect('actor-added', (...args) =>
+        this._windowActorAddedSig = global.window_group.connect('child-added', (...args) =>
             this._windowActorAdded(...args)
         );
-        this._windowActorRemovedSig = global.window_group.connect('actor-removed', (...args) =>
+        this._windowActorRemovedSig = global.window_group.connect('child-removed', (...args) =>
             this._windowActorRemoved(...args)
         );
 
