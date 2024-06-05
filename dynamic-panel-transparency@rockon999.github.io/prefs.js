@@ -1,11 +1,10 @@
 import Adw from 'gi://Adw';
 import GLib from 'gi://GLib';
-import GObject from 'gi://GObject';
 import Gdk from 'gi://Gdk';
-import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import { setTimeout } from './timers.js';
 
 
 class Color {
@@ -71,18 +70,14 @@ export default class MyExtensionPreferences extends ExtensionPreferences {
         let transition_speed_scale = builder.get_object('transition_speed_scale');
         transition_speed_scale.set_value(settings.get_int('transition-speed'));
         transition_speed_scale.add_mark(1000, Gtk.PositionType.BOTTOM, null);
-
-        let transition_speed_timeout_id = null;
-        transition_speed_scale.connect('change-value', (scale) => {
-            if (transition_speed_timeout_id) {
-                GLib.source_remove(transition_speed_timeout_id);
-            }
-
-            transition_speed_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+        transition_speed_scale.connect('value-changed', (scale) => {
+            const id = (this.transition_speed_timeout_id) = setTimeout(() => {
+                if (this.transition_speed_update_id !== id) {
+                    return;
+                }
                 settings.set_value('transition-speed', new GLib.Variant('i', scale.get_value()));
-                transition_speed_timeout_id = null;
-                return false;
-            });
+                return;
+            }, 500);
         });
 
         let transition_windows_touch_check = builder.get_object('transition_windows_touch_check');
@@ -146,65 +141,49 @@ export default class MyExtensionPreferences extends ExtensionPreferences {
             settings.set_value('text-shadow', new GLib.Variant('b', check.get_active()));
         });
 
+
+        let [text_x, text_y, text_shadow] = Position.getFromSettings(settings, 'text-shadow-position');
+
         let text_shadow_x_offset = builder.get_object('text_shadow_x_offset');
         text_shadow_x_offset.set_sensitive(text_shadowing_enable_check.get_active());
-        let [text_x, text_y, text_shadow] = Position.getFromSettings(settings, 'text-shadow-position');
         let text_shadow_x_offset_spin = builder.get_object('text_shadow_x_offset_spin');
         text_shadow_x_offset_spin.set_value(text_x);
-
-        let text_shadow_x_offset_timeout_id = null;
         text_shadow_x_offset_spin.connect('value-changed', (scale) => {
-            text_x = scale.get_value();
-
-            if (text_shadow_x_offset_timeout_id) {
-                GLib.source_remove(text_shadow_x_offset_timeout_id);
-            }
-
-            text_shadow_x_offset_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                Position.saveToSettings(settings, 'text-shadow-position', [text_x, text_y, text_shadow]);
-                text_shadow_x_offset_timeout_id = null;
-                return false;
-            });
+            const id = (this.text_shadow_x_offset_timeout_id = setTimeout(() => {
+                if (this.text_shadow_x_offset_timeout_id !== id) {
+                    return;
+                }
+                Position.saveToSettings(settings, 'text-shadow-position', [scale.get_value(), text_y, text_shadow]);
+                return;
+            }, 500));
         });
 
         let text_shadow_y_offset = builder.get_object('text_shadow_y_offset');
         text_shadow_y_offset.set_sensitive(text_shadowing_enable_check.get_active());
         let text_shadow_y_offset_spin = builder.get_object('text_shadow_y_offset_spin');
         text_shadow_y_offset_spin.set_value(text_y);
-
-        let text_shadow_y_offset_timeout_id = null;
         text_shadow_y_offset_spin.connect('value-changed', (scale) => {
-            text_y = scale.get_value();
-
-            if (text_shadow_y_offset_timeout_id) {
-                GLib.source_remove(text_shadow_y_offset_timeout_id);
-            }
-
-            text_shadow_y_offset_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                Position.saveToSettings(settings, 'text-shadow-position', [text_x, text_y, text_shadow]);
-                text_shadow_y_offset_timeout_id = null;
-                return false;
-            });
+            const id = (this.text_shadow_y_offset_timeout_id = setTimeout(() => {
+                if (this.text_shadow_y_offset_timeout_id !== id) {
+                    return;
+                }
+                Position.saveToSettings(settings, 'text-shadow-position', [text_x, scale.get_value(), text_shadow]);
+                return;
+            }, 500));
         });
 
         let text_shadow_radius = builder.get_object('text_shadow_radius');
         text_shadow_radius.set_sensitive(text_shadowing_enable_check.get_active());
         let text_shadow_radius_spin = builder.get_object('text_shadow_radius_spin');
         text_shadow_radius_spin.set_value(text_shadow);
-
-        let text_shadow_radius_timeout_id = null;
         text_shadow_radius_spin.connect('value-changed', (scale) => {
-            text_shadow = scale.get_value();
-
-            if (text_shadow_radius_timeout_id) {
-                GLib.source_remove(text_shadow_radius_timeout_id);
-            }
-
-            text_shadow_radius_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                Position.saveToSettings(settings, 'text-shadow-position', [text_x, text_y, text_shadow]);
-                text_shadow_radius_timeout_id = null;
-                return false;
-            });
+            const id = (this.text_shadow_radius_timeout_id = setTimeout(() => {
+                if (this.text_shadow_radius_timeout_id !== id) {
+                    return;
+                }
+                Position.saveToSettings(settings, 'text-shadow-position', [text_x, text_y, scale.get_value()]);
+                return;
+            }, 500));
         });
 
         let text_shadow_color_row = builder.get_object('text_shadow_color');
@@ -222,65 +201,48 @@ export default class MyExtensionPreferences extends ExtensionPreferences {
             settings.set_value('icon-shadow', new GLib.Variant('b', check.get_active()));
         });
 
+        let [icon_x, icon_y, icon_radius] = Position.getFromSettings(settings, 'icon-shadow-position');
+
         let icon_shadow_x_offset = builder.get_object('icon_shadow_x_offset');
         icon_shadow_x_offset.set_sensitive(icon_shadowing_enable_check.get_active());
-        let [icon_x, icon_y, icon_radius] = Position.getFromSettings(settings, 'icon-shadow-position');
         let icon_shadow_x_offset_spin = builder.get_object('icon_shadow_x_offset_spin');
         icon_shadow_x_offset_spin.set_value(icon_x);
-
-        let icon_shadow_x_offset_timeout_id = null;
         icon_shadow_x_offset_spin.connect('value-changed', (scale) => {
-            icon_x = scale.get_value();
-
-            if (icon_shadow_x_offset_timeout_id) {
-                GLib.source_remove(icon_shadow_x_offset_timeout_id);
-            }
-
-            icon_shadow_x_offset_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                Position.saveToSettings(settings, 'icon-shadow-position', [icon_x, icon_y, icon_radius]);
-                icon_shadow_x_offset_timeout_id = null;
-                return false;
-            });
+            const id = (this.icon_shadow_x_offset_timeout_id = setTimeout(() => {
+                if (this.icon_shadow_x_offset_timeout_id !== id) {
+                    return;
+                }
+                Position.saveToSettings(settings, 'icon-shadow-position', [scale.get_value(), icon_y, icon_radius]);
+                return;
+            }, 500));
         });
 
         let icon_shadow_y_offset = builder.get_object('icon_shadow_y_offset');
         icon_shadow_y_offset.set_sensitive(icon_shadowing_enable_check.get_active());
         let icon_shadow_y_offset_spin = builder.get_object('icon_shadow_y_offset_spin');
         icon_shadow_y_offset_spin.set_value(icon_y);
-
-        let icon_shadow_y_offset_timeout_id = null;
         icon_shadow_y_offset_spin.connect('value-changed', (scale) => {
-            icon_y = scale.get_value();
-
-            if (icon_shadow_y_offset_timeout_id) {
-                GLib.source_remove(icon_shadow_y_offset_timeout_id);
-            }
-
-            icon_shadow_y_offset_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                Position.saveToSettings(settings, 'icon-shadow-position', [icon_x, icon_y, icon_radius]);
-                icon_shadow_y_offset_timeout_id = null;
-                return false;
-            });
+            const id = (this.icon_shadow_y_offset_timeout_id = setTimeout(() => {
+                if (this.icon_shadow_y_offset_timeout_id !== id) {
+                    return;
+                }
+                Position.saveToSettings(settings, 'icon-shadow-position', [icon_x, scale.get_value(), icon_radius]);
+                return;
+            }, 500));
         });
 
         let icon_shadow_radius = builder.get_object('icon_shadow_radius');
         icon_shadow_radius.set_sensitive(icon_shadowing_enable_check.get_active());
         let icon_shadow_radius_spin = builder.get_object('icon_shadow_radius_spin');
         icon_shadow_radius_spin.set_value(icon_radius);
-
-        let icon_shadow_radius_timeout_id = null;
         icon_shadow_radius_spin.connect('value-changed', (scale) => {
-            icon_radius = scale.get_value();
-
-            if (icon_shadow_radius_timeout_id) {
-                GLib.source_remove(icon_shadow_radius_timeout_id);
-            }
-
-            icon_shadow_radius_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                Position.saveToSettings(settings, 'icon-shadow-position', [icon_x, icon_y, icon_radius]);
-                icon_shadow_radius_timeout_id = null;
-                return false;
-            });
+            const id = (this.icon_shadow_radius_timeout_id = setTimeout(() => {
+                if (this.icon_shadow_radius_timeout_id !== id) {
+                    return;
+                }
+                Position.saveToSettings(settings, 'icon-shadow-position', [icon_x, icon_y, scale.get_value()]);
+                return;
+            }, 500));
         });
 
         let icon_shadow_color_row = builder.get_object('icon_shadow_color');
@@ -305,40 +267,28 @@ export default class MyExtensionPreferences extends ExtensionPreferences {
         opacity_window_maximized.set_sensitive(opacity_enable_check.get_active());
         let opacity_window_maximized_scale = builder.get_object('opacity_window_maximized_scale');
         opacity_window_maximized_scale.set_value(settings.get_int('maximized-opacity'));
-
-        let opacity_window_maximized_timeout_id = null;
         opacity_window_maximized_scale.connect('value-changed', (scale) => {
-            let value = scale.get_value();
-
-            if (opacity_window_maximized_timeout_id) {
-                GLib.source_remove(opacity_window_maximized_timeout_id);
-            }
-
-            opacity_window_maximized_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                settings.set_value('maximized-opacity', new GLib.Variant('i', value));
-                opacity_window_maximized_timeout_id = null;
-                return false;
-            });
+            const id = (this.opacity_window_maximized_timeout_id = setTimeout(() => {
+                if (this.opacity_window_maximized_timeout_id !== id) {
+                    return;
+                }
+                settings.set_value('maximized-opacity', new GLib.Variant('i', scale.get_value()));
+                return;
+            }, 500));
         });
 
         let opacity_no_window_maximized = builder.get_object('opacity_no_window_maximized');
         opacity_no_window_maximized.set_sensitive(opacity_enable_check.get_active());
         let opacity_no_window_maximized_scale = builder.get_object('opacity_no_window_maximized_scale');
         opacity_no_window_maximized_scale.set_value(settings.get_int('unmaximized-opacity'));
-
-        let opacity_no_window_maximized_timeout_id = null;
         opacity_no_window_maximized_scale.connect('value-changed', (scale) => {
-            let value = scale.get_value();
-
-            if (opacity_no_window_maximized_timeout_id) {
-                GLib.source_remove(opacity_no_window_maximized_timeout_id);
-            }
-
-            opacity_no_window_maximized_timeout_id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-                settings.set_value('unmaximized-opacity', new GLib.Variant('i', value));
-                opacity_no_window_maximized_timeout_id = null;
-                return false;
-            });
+            const id = (this.opacity_no_window_maximized_timeout_id = setTimeout(() => {
+                if (this.opacity_no_window_maximized_timeout_id !== id) {
+                    return;
+                }
+                settings.set_value('unmaximized-opacity', new GLib.Variant('i', scale.get_value()));
+                return;
+            }, 500));
         });
 
         let panel_background_color_enable_check = builder.get_object('panel_background_color_enable_check');
