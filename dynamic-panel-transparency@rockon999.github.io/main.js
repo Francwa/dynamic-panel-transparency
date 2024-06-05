@@ -493,7 +493,6 @@ export class DptExtension {
 
             for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
                 let stylesheet = theming.stylesheets[i];
-                log(stylesheet);
                 if (
                     stylesheet.indexOf('background') !== -1 &&
                     stylesheet.indexOf('panel-custom') !== -1
