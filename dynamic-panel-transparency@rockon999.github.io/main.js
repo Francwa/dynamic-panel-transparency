@@ -146,19 +146,7 @@ export class DptExtension {
         settings.on('transition-speed', () => {
             main.panel.remove_style_class_name('dpt-panel-transition-duration');
 
-            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
-
-            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                let stylesheet = theming.stylesheets[i];
-                if (
-                    stylesheet.indexOf('transitions') !== -1 &&
-                    stylesheet.endsWith('panel-transition-duration.dpt.css')
-                ) {
-                    theme.unload_stylesheet(Util.get_file(stylesheet));
-                    Util.remove_file(stylesheet);
-                    theming.stylesheets.splice(i, 1);
-                }
-            }
+            this._unloadAndRemoveStylesheet('transitions/panel-transition-duration');
 
             const id = (this.panel_transition_update_id = setTimeout(() => {
                 if (id !== this.panel_transition_update_id) {
@@ -179,19 +167,7 @@ export class DptExtension {
                     return;
                 }
 
-                let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
-
-                for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                    let stylesheet = theming.stylesheets[i];
-                    if (
-                        stylesheet.indexOf('background') !== -1 &&
-                        stylesheet.indexOf('panel-') !== -1
-                    ) {
-                        theme.unload_stylesheet(Util.get_file(stylesheet));
-                        Util.remove_file(stylesheet);
-                        theming.stylesheets.splice(i, 1);
-                    }
-                }
+                this._unloadAndRemoveStylesheet('background/panel-custom');
 
                 theming.initialize_background_styles();
 
@@ -218,19 +194,7 @@ export class DptExtension {
                     return;
                 }
 
-                let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
-
-                for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                    let stylesheet = theming.stylesheets[i];
-                    if (
-                        stylesheet.indexOf('background') !== -1 &&
-                        stylesheet.indexOf('panel-') !== -1
-                    ) {
-                        theme.unload_stylesheet(Util.get_file(stylesheet));
-                        Util.remove_file(stylesheet);
-                        theming.stylesheets.splice(i, 1);
-                    }
-                }
+                this._unloadAndRemoveStylesheet('background/panel-custom');
 
                 theming.initialize_background_styles();
 
@@ -268,16 +232,8 @@ export class DptExtension {
         settings.on('text-shadow-position', () => {
             theming.remove_text_shadow();
 
-            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+            this._unloadAndRemoveStylesheet('foreground/panel-text-shadow');
 
-            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                let stylesheet = theming.stylesheets[i];
-                if (stylesheet.indexOf('shadow') !== -1 && stylesheet.indexOf('text') !== -1) {
-                    theme.unload_stylesheet(Util.get_file(stylesheet));
-                    Util.remove_file(stylesheet);
-                    theming.stylesheets.splice(i, 1);
-                }
-            }
             let text_shadow = theming.register_text_shadow(
                 settings.get_text_shadow_color(),
                 settings.get_text_shadow_position()
@@ -304,16 +260,8 @@ export class DptExtension {
         settings.on('icon-shadow-position', () => {
             theming.remove_icon_shadow();
 
-            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+            this._unloadAndRemoveStylesheet('foreground/panel-icon-shadow');
 
-            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                let stylesheet = theming.stylesheets[i];
-                if (stylesheet.indexOf('shadow') !== -1 && stylesheet.indexOf('icon') !== -1) {
-                    theme.unload_stylesheet(Util.get_file(stylesheet));
-                    Util.remove_file(stylesheet);
-                    theming.stylesheets.splice(i, 1);
-                }
-            }
             let icon_shadow = theming.register_icon_shadow(
                 settings.get_icon_shadow_color(),
                 settings.get_icon_shadow_position()
@@ -340,16 +288,8 @@ export class DptExtension {
         settings.on('icon-shadow-color', () => {
             theming.remove_icon_shadow();
 
-            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+            this._unloadAndRemoveStylesheet('foreground/panel-icon-shadow');
 
-            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                let stylesheet = theming.stylesheets[i];
-                if (stylesheet.indexOf('shadow') !== -1 && stylesheet.indexOf('icon') !== -1) {
-                    theme.unload_stylesheet(Util.get_file(stylesheet));
-                    Util.remove_file(stylesheet);
-                    theming.stylesheets.splice(i, 1);
-                }
-            }
             let icon_shadow = theming.register_icon_shadow(
                 settings.get_icon_shadow_color(),
                 settings.get_icon_shadow_position()
@@ -376,16 +316,8 @@ export class DptExtension {
         settings.on('text-shadow-color', () => {
             theming.remove_text_shadow();
 
-            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+            this._unloadAndRemoveStylesheet('foreground/panel-text-shadow');
 
-            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                let stylesheet = theming.stylesheets[i];
-                if (stylesheet.indexOf('shadow') !== -1 && stylesheet.indexOf('text') !== -1) {
-                    theme.unload_stylesheet(Util.get_file(stylesheet));
-                    Util.remove_file(stylesheet);
-                    theming.stylesheets.splice(i, 1);
-                }
-            }
             let text_shadow = theming.register_text_shadow(
                 settings.get_text_shadow_color(),
                 settings.get_text_shadow_position()
@@ -427,19 +359,7 @@ export class DptExtension {
         settings.on('text-color', () => {
             main.panel.remove_style_class_name('dpt-panel-text-color');
 
-            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
-
-            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                let stylesheet = theming.stylesheets[i];
-                if (
-                    stylesheet.indexOf('foreground') !== -1 &&
-                    stylesheet.indexOf('text-color') !== -1
-                ) {
-                    theme.unload_stylesheet(Util.get_file(stylesheet));
-                    Util.remove_file(stylesheet);
-                    theming.stylesheets.splice(i, 1);
-                }
-            }
+            this._unloadAndRemoveStylesheet('foreground/panel-text-color');
 
             const id = (this.text_color_update_id = setTimeout(() => {
                 if (id !== this.text_color_update_id) {
@@ -458,19 +378,7 @@ export class DptExtension {
         settings.on('maximized-text-color', () => {
             main.panel.remove_style_class_name('dpt-panel-maximized-text-color');
 
-            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
-
-            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                let stylesheet = theming.stylesheets[i];
-                if (
-                    stylesheet.indexOf('foreground') !== -1 &&
-                    stylesheet.indexOf('maximized-text-color') !== -1
-                ) {
-                    theme.unload_stylesheet(Util.get_file(stylesheet));
-                    Util.remove_file(stylesheet);
-                    theming.stylesheets.splice(i, 1);
-                }
-            }
+            this._unloadAndRemoveStylesheet('foreground/panel-maximized-text-color');
 
             const id = (this.maximized_text_color_update_id = setTimeout(() => {
                 if (id !== this.maximized_text_color_update_id) {
@@ -489,19 +397,7 @@ export class DptExtension {
         settings.on('panel-color', () => {
             main.panel.remove_style_class_name('dpt-panel-color');
 
-            let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
-
-            for (let i = theming.stylesheets.length - 1; i >= 0; i--) {
-                let stylesheet = theming.stylesheets[i];
-                if (
-                    stylesheet.indexOf('background') !== -1 &&
-                    stylesheet.indexOf('panel-custom') !== -1
-                ) {
-                    theme.unload_stylesheet(Util.get_file(stylesheet));
-                    Util.remove_file(stylesheet);
-                    theming.stylesheets.splice(i, 1);
-                }
-            }
+            this._unloadAndRemoveStylesheet('background/panel-custom');
 
             const id = (this.panel_color_update_id = setTimeout(() => {
                 if (id !== this.panel_color_update_id) {
@@ -532,5 +428,18 @@ export class DptExtension {
                 theming.remove_opacity();
             }
         });
+    }
+
+    _unloadAndRemoveStylesheet(name) {
+        let theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+
+        for (let i = this.theming.stylesheets.length - 1; i >= 0; i--) {
+            let stylesheet = this.theming.stylesheets[i];
+            if (stylesheet.includes(name)) {
+                theme.unload_stylesheet(Util.get_file(stylesheet));
+                Util.remove_file(stylesheet);
+                this.theming.stylesheets.splice(i, 1);
+            }
+        }
     }
 }
